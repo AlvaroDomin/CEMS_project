@@ -5,14 +5,6 @@
  */
 package dbmanager;
 
-<<<<<<< HEAD
-/**
- *
- * @author maria
- */
-public class DBManager {
-
-=======
 import cems_project.Metabolito;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -50,7 +42,7 @@ public class DBManager {
             // MySQL driver registered
             //DriverManager.registerDriver(new org.gjt.mm.mysql.Driver());
 
-            // get DatabaseConnection 
+            // get DatabaseConnection
             connection = DriverManager.getConnection(bd, usuario, clave);
 
             statement = this.connection.createStatement();
@@ -60,11 +52,12 @@ public class DBManager {
     }
 
     /**
-     * It executes the query and returns the first int returned by the query. 
+     * It executes the query and returns the first int returned by the query.
+     *
      * @param query
      * @return the ID of the query or 0 if the result is null
      */
-    public int getInt(String query){
+    public int getInt(String query) {
         int id = -1;
         // Be aware that the connection should be initialized (calling the method connectToDB
 
@@ -109,17 +102,16 @@ public class DBManager {
          */
         return null;
     }
-    
+
     /**
      *
      * @param metabolito
      * @throws Exception
      */
-    public void insertMetabolito(Metabolito metabolito) throws Exception{
-        
-        // mediante una llamada al metodo insertMetabolito (devuelve el ID generado. 
-        
-        // mediante otra llamada la insercion de los fragmentos. 
+    public void insertMetabolito(Metabolito metabolito) throws Exception {
+
+        // mediante una llamada al metodo insertMetabolito (devuelve el ID generado.
+        // mediante otra llamada la insercion de los fragmentos.
     }
 
     /**
@@ -172,5 +164,5 @@ public class DBManager {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ioe);
         }
     }
->>>>>>> 571e68cf6542df223fb2f7445c712ede16feda2e
+    >>>>>>> 571e68cf6542df223fb2f7445c712ede16feda2e
 }
