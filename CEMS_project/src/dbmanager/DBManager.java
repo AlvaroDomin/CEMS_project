@@ -75,31 +75,42 @@ public class DBManager {
     }
 
     /**
-     * TO DO Metodo para obtener un metabolito por JDBC.
+     * TO DO METHOD TO GET A STRING FROM SQL
      *
-     * @param query
+     *
+     */
+    public String getString(String query) {
+        return null;
+    }
+
+    /**
+     * TO DO Metodo para obtener un metabolito por JDBC. It should throw a
+     * exception if the query is not from metabolites
+     *
+     * @param query the SQL query to execute. It should contain the attributes:
      * @return
      */
-    public Metabolito getMetabolito(String query) {
-        /*
+    private Metabolito getMetabolito(String query) {
         try {
             statement.execute(query);
             ResultSet rs = statement.executeQuery(query);
-                while (rs.next()) {
-                    int id = rs.getInt(1);
-                    String id2 = rs.getString("f1");
-                    int id3 = rs.getInt(3);
-                    int id4 = rs.getInt(4);
-                    Metabolito m1 = new Metabolito(query, query, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, fragments);
-                    return m1;
-                }
-                provRS.close();
-            }
+            while (rs.next()) {
+                double m_z = rs.getDouble("id");
+                // .... other attributes
+                double m_z2 = rs.getDouble("m_z");
+                System.out.println("ID por orden: " + m_z);
+                System.out.println("ID por nombre: " + m_z2);
+                // int id3 = rs.getInt(3);
+                // int id4 = rs.getInt(4);
 
+                // Select de los fragmentos. Creando un metodo getFragmentos, solo reciba el parámetro int ID
+                Metabolito m1 = new Metabolito(query, query, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, null);
+                return m1;
+            }
+            rs.close();
         } catch (SQLException ex) {
-            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+            // Launch exception
         }
-         */
         return null;
     }
 
@@ -124,6 +135,7 @@ public class DBManager {
         // Be aware that the connection should be initialized (calling the method connectToDB
 
         try {
+
             statement.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
             try (ResultSet provRS = statement.getGeneratedKeys()) {
                 if (provRS.next()) {
@@ -153,9 +165,13 @@ public class DBManager {
             // Here you can check the values obtained
             //System.out.println("DB_NAME: " + dbName + " DBUser: " + dbUser + " DBPassword: " + dbPassword);
             db.connectToDB("jdbc:mysql://localhost/" + dbName + "?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true", dbUser, dbPassword);
-            int id = db.getInt("Select 1");
-            System.out.println(id);
 
+            //int id = db.getInt("Select 1");
+            //System.out.println(id);
+            // Metabolito m1 = db.getMetabolito("Select * from metabolites");
+            // SI NO INSERTA NADA, AUTO_GENERATED KEYS DEVUELVE 0
+            int id_updated = db.exampleQueryToGetTheLastGeneratedIdFromAnInsert("update prueba set f1 = 2 where id=2");
+            System.out.println(id_updated);
             int id_inserted = db.exampleQueryToGetTheLastGeneratedIdFromAnInsert("insert into prueba (f1) values (25)");
             System.out.println(id_inserted);
         } catch (FileNotFoundException ex) {
@@ -164,5 +180,4 @@ public class DBManager {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ioe);
         }
     }
-    >>>>>>> 571e68cf6542df223fb2f7445c712ede16feda2e
 }

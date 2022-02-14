@@ -5,11 +5,8 @@
  */
 package utilities;
 
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  *
@@ -30,9 +27,9 @@ public class fileIOTest {
 
         System.out.println("readStringFromFile");
         String expResult = "{\n"
-                + "	\"db_name\" : \"prueba\",\n"
-                + "	\"db_user\" : \"a\",\n"
-                + "	\"db_password\" : \"a\"\n"
+                + "	\"db_name\" : \"CEMS\",\n"
+                + "	\"db_user\" : \"root\",\n"
+                + "	\"db_password\" : \"maria\"\n"
                 + "}";
         String result = fileIO.readStringFromFile(filename);
         assertEquals(expResult, result);
