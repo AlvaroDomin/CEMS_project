@@ -66,7 +66,7 @@ public class DBManagerTest {
     @Test
     public void testGetString() {
         System.out.println("getString");
-        String query = "select \"asd\"";
+        String query = "Select \"asd\"";
         String expResult = "asd";
         String result = dbmanager.getString(query);
         assertEquals(expResult, result);

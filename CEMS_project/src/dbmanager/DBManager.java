@@ -59,15 +59,15 @@ public class DBManager {
      */
     public int getInt(String query) {
         int id = -1;
-        // Be aware that the connection should be initialized (calling the method connectToDB
-
+        // Be aware that the connection should be initialized (calling the method connectToDB)
         try {
-            ResultSet rs = statement.executeQuery(query);
+            ResultSet rs = statement.executeQuery(query);   //es un iterador
 
             if (rs.next()) {
                 id = rs.getInt(1);
             }
             rs.close();
+
         } catch (SQLException ex) {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -75,12 +75,24 @@ public class DBManager {
     }
 
     /**
-     * TO DO METHOD TO GET A STRING FROM SQL
+     * TO DO METHOD TO GET A STRING FROM SQL It executes the query and returns
+     * the first String returned by the query
      *
-     *
+     * @param query
+     * @return the String of the query or ??? if the result is null
      */
     public String getString(String query) {
-        return null;
+        String word = null;
+        try {
+            ResultSet rs = statement.executeQuery(query);
+            if (rs.next()) {
+                word = rs.getString(1);
+            }
+            rs.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return word;
     }
 
     /**
@@ -95,21 +107,39 @@ public class DBManager {
             statement.execute(query);
             ResultSet rs = statement.executeQuery(query);
             while (rs.next()) {
-                double m_z = rs.getDouble("id");
-                // .... other attributes
-                double m_z2 = rs.getDouble("m_z");
-                System.out.println("ID por orden: " + m_z);
-                System.out.println("ID por nombre: " + m_z2);
-                // int id3 = rs.getInt(3);
-                // int id4 = rs.getInt(4);
+
+                //int id = rs.getInt("id");
+                int id = rs.getInt(1);
+                System.out.println("ID: " + id);
+
+                //String Compd_name = rs.getString("Compound_name");
+                String Compd_name = rs.getString(2);
+                System.out.println("Compound name: " + Compd_name);
+
+                String formula = rs.getString(3);
+                System.out.println("Formula: " + formula);
+                double m_mass = rs.getDouble(4);
+                System.out.println("Monoisotopic Mass: " + m_mass);
+                double m_z = rs.getDouble(5);
+                System.out.println("M_z: " + m_z);
+                double mt_compnd = rs.getDouble(6);
+                System.out.println("MT_compnd: " + mt_compnd);
+                double mt_mets = rs.getDouble(7);
+                System.out.println("MT_mets: " + mt_mets);
+                double rmt_mets = rs.getDouble(8);
+                System.out.println("RMT_mets: " + rmt_mets);
+                double mt_mes = rs.getDouble(9);
+                System.out.println("MT_mes: " + mt_mes);
+                double rmt_mes = rs.getDouble(10);
+                System.out.println("RMT_mes: " + rmt_mes);
 
                 // Select de los fragmentos. Creando un metodo getFragmentos, solo reciba el parámetro int ID
-                Metabolito m1 = new Metabolito(query, query, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, null);
+                Metabolito m1 = new Metabolito(Compd_name, formula, m_mass, m_z, mt_compnd, mt_mets, rmt_mets, mt_mes, rmt_mes, null);
                 return m1;
             }
             rs.close();
         } catch (SQLException ex) {
-            // Launch exception
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
@@ -153,7 +183,7 @@ public class DBManager {
     public static void main(String[] args) {
 
         DBManager db = new DBManager();
-        String filename = "resources/connectionData.pass";
+        String filename = "resources/connectionData.pass";  //este file contiene los datos de acceso a la database (notación JSON: clave-valor)
         try {
             Gson gson = new Gson();
             String readJSONStr = readStringFromFile(filename);
@@ -162,18 +192,26 @@ public class DBManager {
             String dbName = jsonObj.get("db_name").getAsString();
             String dbUser = jsonObj.get("db_user").getAsString();
             String dbPassword = jsonObj.get("db_password").getAsString();
+
             // Here you can check the values obtained
             //System.out.println("DB_NAME: " + dbName + " DBUser: " + dbUser + " DBPassword: " + dbPassword);
             db.connectToDB("jdbc:mysql://localhost/" + dbName + "?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true", dbUser, dbPassword);
 
-            //int id = db.getInt("Select 1");
+            //GET INT
+            //int id = db.getInt("Select 10");
             //System.out.println(id);
-            // Metabolito m1 = db.getMetabolito("Select * from metabolites");
+            //GET STRING
+            //String word = db.getString("Select \"asd\"");
+            //System.out.println(word);
+            //GETMETABOLITO
+            Metabolito m1 = db.getMetabolito("Select * from metabolites");
+            System.out.println("Metabolito 1: " + m1);
+
             // SI NO INSERTA NADA, AUTO_GENERATED KEYS DEVUELVE 0
-            int id_updated = db.exampleQueryToGetTheLastGeneratedIdFromAnInsert("update prueba set f1 = 2 where id=2");
+            /*int id_updated = db.exampleQueryToGetTheLastGeneratedIdFromAnInsert("update prueba set f1 = 2 where id=2");
             System.out.println(id_updated);
             int id_inserted = db.exampleQueryToGetTheLastGeneratedIdFromAnInsert("insert into prueba (f1) values (25)");
-            System.out.println(id_inserted);
+            System.out.println(id_inserted);*/
         } catch (FileNotFoundException ex) {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ioe) {
