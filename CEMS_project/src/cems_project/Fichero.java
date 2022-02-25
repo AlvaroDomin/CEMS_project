@@ -40,7 +40,7 @@ public class Fichero {
             // we get first sheet
             XSSFSheet sheet = workbook.getSheetAt(0);   //Get the HSSFSheet object at the given index
             int totalRows = sheet.getPhysicalNumberOfRows();
-            System.out.println("READING " + (totalRows - 2) + " compounds");
+            System.out.println("READING " + (totalRows - 2) + " compounds\n");
 
             Iterator<Row> rowIt = sheet.iterator();
             // skip the header
@@ -104,11 +104,13 @@ public class Fichero {
                 //ahora leemos los fragmentos como String y luego con Split lo separamos en cada Double correspondiente
                 String celdaLeida;
                 String[] fragmentsLeidos;   //el método split devuelve un array de Strings
-                List<Double> fragments = new LinkedList<Double>();
+                List<Fragment> fragments = new LinkedList<Fragment>();
                 celdaLeida = cellIterator.next().getStringCellValue();
 
                 if (celdaLeida.equalsIgnoreCase("") || celdaLeida.equalsIgnoreCase("XXX")) {    //si lee esto es porque no hay fragments
                     fragments = null;
+                    //también podemos llamar al constructor que no recibe fragmentos
+                    //Metabolito m = new Metabolito(name, formula, M, m_z, MTcompnd, MTmets, RMTmets, MTmes, RMTmes);
 
                 } else {    //en caso de que si que lea algo, se añaden a la lista
 
@@ -117,11 +119,11 @@ public class Fichero {
                     for (String s : fragmentsLeidos) {  //recorremos cada uno de los fragmentos (todavia en Strings)
 
                         try {       //si no se puede meter, es porque no solo hay numeros
-                            fragments.add(Double.parseDouble(s));   //transformamos el String en Double
+                            fragments.add(new Fragment(Double.parseDouble(s)));   //transformamos el String en Double
 
                         } catch (NumberFormatException e) {    //si llegamos al catch es porque hay texto a parte de numeros
                             String[] sinProblemas = s.split("[(]");     //tenemos que quedarnos con la parte que no contiene texto y que viene entre ()
-                            fragments.add(Double.parseDouble(sinProblemas[0]));
+                            fragments.add(new Fragment(Double.parseDouble(sinProblemas[0])));
                         }
                     }
 

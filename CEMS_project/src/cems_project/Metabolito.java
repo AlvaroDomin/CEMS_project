@@ -22,10 +22,10 @@ public class Metabolito {
     private final Double RMTmets;
     private final Double MTmes;
     private final Double RMTmes;
-    private final List<Double> fragments;
+    private final List<Fragment> fragments;
 
     //constructor
-    public Metabolito(String compound, String formula, Double M, Double m_z, Double MTcompnd, Double MTmets, Double RMTmets, Double MTmes, Double RMTmes, List<Double> fragments) {
+    public Metabolito(String compound, String formula, Double M, Double m_z, Double MTcompnd, Double MTmets, Double RMTmets, Double MTmes, Double RMTmes, List<Fragment> fragments) {
         this.compound = compound;
         this.formula = formula;
         this.M = M;
@@ -36,14 +36,37 @@ public class Metabolito {
         this.MTmes = MTmes;
         this.RMTmes = RMTmes;
         this.fragments = fragments;
+        //System.out.println(this.fragments == null);   no es con equals
+    }
+
+    public Metabolito(String compound, String formula, Double M, Double m_z, Double MTcompnd, Double MTmets, Double RMTmets, Double MTmes, Double RMTmes) {
+        this.compound = compound;
+        this.formula = formula;
+        this.M = M;
+        this.m_z = m_z;
+        this.MTcompnd = MTcompnd;
+        this.MTmets = MTmets;
+        this.RMTmets = RMTmets;
+        this.MTmes = MTmes;
+        this.RMTmes = RMTmes;
+        this.fragments = null;
     }
 
     @Override
     public String toString() {
         String human_readable_string = "COMPOUND: " + this.compound + "\n\tFORMULA: " + this.formula + "\n\tM: " + this.M + "\n\tm_z: "
                 + this.m_z + "\n\tMTcompound: " + this.MTcompnd + "\n\tMTmets: " + this.MTmets + "\n\tRMTmets: "
-                + this.RMTmets + "\n\tMTmes: " + this.MTmes + "\n\tRMTmes: " + this.RMTmes + "\n\tFragments: " + this.fragments + "\n\n";
-        return human_readable_string;
+                + this.RMTmets + "\n\tMTmes: " + this.MTmes + "\n\tRMTmes: " + this.RMTmes + "\n\tFragments:\n";
+
+        if (this.fragments == null) {
+            return human_readable_string + "\t\tThere are no fragments\n\n";
+        }
+        //else
+        String fragmentos = "";
+        for (Fragment f : this.fragments) {
+            fragmentos = fragmentos + f.toString();
+        }
+        return human_readable_string + fragmentos + "\n\n";
     }
 
 }

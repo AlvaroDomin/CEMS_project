@@ -31,7 +31,7 @@ public class Ejecutable {
         List<Metabolito> metabolitos = Fichero.leerFichero();
 
         for (Metabolito m : metabolitos) {
-            //System.out.println(m);
+            System.out.println(m);
         }
     }
 
