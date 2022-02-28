@@ -5,6 +5,7 @@
  */
 package dbmanager;
 
+import cems_project.Fragment;
 import cems_project.Metabolito;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -16,6 +17,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static utilities.fileIO.readStringFromFile;
@@ -106,35 +109,36 @@ public class DBManager {
         try {
             statement.execute(query);
             ResultSet rs = statement.executeQuery(query);
-            while (rs.next()) {
-
+            //while (rs.next()) {
+            if (rs.next()) {
                 //int id = rs.getInt("id");
                 int id = rs.getInt(1);
-                System.out.println("ID: " + id);
+                //System.out.println("ID: " + id);
 
                 //String Compd_name = rs.getString("Compound_name");
                 String Compd_name = rs.getString(2);
-                System.out.println("Compound name: " + Compd_name);
+                //System.out.println("Compound name: " + Compd_name);
 
                 String formula = rs.getString(3);
-                System.out.println("Formula: " + formula);
+                //System.out.println("Formula: " + formula);
                 double m_mass = rs.getDouble(4);
-                System.out.println("Monoisotopic Mass: " + m_mass);
+                //System.out.println("Monoisotopic Mass: " + m_mass);
                 double m_z = rs.getDouble(5);
-                System.out.println("M_z: " + m_z);
+                //System.out.println("M_z: " + m_z);
                 double mt_compnd = rs.getDouble(6);
-                System.out.println("MT_compnd: " + mt_compnd);
+                // System.out.println("MT_compnd: " + mt_compnd);
                 double mt_mets = rs.getDouble(7);
-                System.out.println("MT_mets: " + mt_mets);
+                //System.out.println("MT_mets: " + mt_mets);
                 double rmt_mets = rs.getDouble(8);
-                System.out.println("RMT_mets: " + rmt_mets);
+                //System.out.println("RMT_mets: " + rmt_mets);
                 double mt_mes = rs.getDouble(9);
-                System.out.println("MT_mes: " + mt_mes);
+                //System.out.println("MT_mes: " + mt_mes);
                 double rmt_mes = rs.getDouble(10);
-                System.out.println("RMT_mes: " + rmt_mes);
+                //System.out.println("RMT_mes: " + rmt_mes);
 
                 // Select de los fragmentos. Creando un metodo getFragmentos, solo reciba el parámetro int ID
-                Metabolito m1 = new Metabolito(Compd_name, formula, m_mass, m_z, mt_compnd, mt_mets, rmt_mets, mt_mes, rmt_mes, null);
+                List<Fragment> fragments = getFragments("Select * from fragments where ID_MET = " + id);
+                Metabolito m1 = new Metabolito(Compd_name, formula, m_mass, m_z, mt_compnd, mt_mets, rmt_mets, mt_mes, rmt_mes, fragments);
                 return m1;
             }
             rs.close();
@@ -142,6 +146,55 @@ public class DBManager {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
+    }
+
+    /**
+     * It executes the query and returns the list of Fragments returned by the
+     * query.
+     *
+     * @param query
+     * @return the list of fragments or null
+     */
+    private List<Fragment> getFragments(String query) {
+        List<Fragment> fragments = new LinkedList<Fragment>();
+
+        try {
+            statement.execute(query);
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                fragments.add(new Fragment(rs.getDouble(3)));   //la columna que contiene el m_z es la tres
+                //System.out.println("frag: " + fragments);
+            }
+            rs.close();
+            return fragments;
+        } catch (SQLException ex) {
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
+    }
+
+    /**
+     *
+     * @param query
+     * @return list of metabolites
+     */
+    private List<Metabolito> getMetabolitos(String query) {
+        List<Metabolito> metabs = new LinkedList<Metabolito>();
+        try {
+            statement.execute(query);
+            ResultSet rs = statement.executeQuery(query);
+            System.out.println(rs.getRow());
+            while (rs.next()) {
+                System.out.println(rs.getRow());
+                metabs.add(getMetabolito(query));
+                //System.out.println(metabs);
+
+            }
+            rs.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return metabs;
     }
 
     /**
@@ -204,8 +257,16 @@ public class DBManager {
             //String word = db.getString("Select \"asd\"");
             //System.out.println(word);
             //GETMETABOLITO
-            Metabolito m1 = db.getMetabolito("Select * from metabolites");
-            System.out.println("Metabolito 1: " + m1);
+            //Metabolito m1 = db.getMetabolito("Select * from metabolites where ID = 2");
+            //Metabolito m1 = db.getMetabolito("Select * from metabolites");
+            //System.out.println("Metabolito 1:\n" + m1);
+            //GETFRAGMENTOS
+            /*List<Fragment> fragments = db.getFragments("Select * from fragments where ID_MET = 2");
+            System.out.println("Fragments: \n" + fragments);*/
+            //GETMETABOLITOS
+            //List<Metabolito> metabs = db.getMetabolitos("select * from metabolites");
+            List<Metabolito> metabs = db.getMetabolitos("select * from metabolites where ID = 1");
+            System.out.println("Estos son los metabolitos almacenados: \n" + metabs);
 
             // SI NO INSERTA NADA, AUTO_GENERATED KEYS DEVUELVE 0
             /*int id_updated = db.exampleQueryToGetTheLastGeneratedIdFromAnInsert("update prueba set f1 = 2 where id=2");
