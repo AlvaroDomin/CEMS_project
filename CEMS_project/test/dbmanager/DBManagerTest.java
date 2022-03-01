@@ -86,22 +86,6 @@ public class DBManagerTest {
     }
 
     /**
-     * Test of exampleQueryToGetTheLastGeneratedIdFromAnInsert method, of class
-     * DBManager.
-     */
-    @Test
-    public void testExampleQueryToGetTheLastGeneratedIdFromAnInsert() {
-        System.out.println("exampleQueryToGetTheLastGeneratedIdFromAnInsert");
-        String query = "";
-        DBManager instance = new DBManager();
-        int expResult = 0;
-        int result = instance.exampleQueryToGetTheLastGeneratedIdFromAnInsert(query);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
      * Test of main method, of class DBManager.
      */
     @Test

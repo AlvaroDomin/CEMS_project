@@ -14,9 +14,17 @@ public class Fragment {
     private final Double m_z;
     private final Double intensity;
 
-    public Fragment(Double m_z) {
+    public Fragment(Double m_z, Double intensity) {
         this.m_z = m_z;
-        this.intensity = null;
+        if (intensity < 0.0001d) {
+            this.intensity = null;
+        } else {
+            this.intensity = intensity;
+        }
+    }
+
+    public Fragment(Double m_z) {
+        this(m_z, null);
     }
 
     @Override

@@ -14,6 +14,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -67,7 +68,7 @@ public class DBManager {
             ResultSet rs = statement.executeQuery(query);   //es un iterador
 
             if (rs.next()) {
-                id = rs.getInt(1);
+                id = rs.getInt(1);  //este uno es que accede a la primera columna de la query que yo le paso
             }
             rs.close();
 
@@ -75,6 +76,18 @@ public class DBManager {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
         }
         return id;
+    }
+
+    /**
+     * TO DO
+     *
+     * @param mz
+     * @param tolerance
+     * @return
+     */
+    public int getIdsFrommz(Double mz, Double tolerance) {
+
+        return 0;
     }
 
     /**
@@ -105,43 +118,37 @@ public class DBManager {
      * @param query the SQL query to execute. It should contain the attributes:
      * @return
      */
-    private Metabolito getMetabolito(String query) {
+    private Metabolito getMetabolito(ResultSet rs) {
         try {
-            statement.execute(query);
-            ResultSet rs = statement.executeQuery(query);
-            //while (rs.next()) {
-            if (rs.next()) {
-                //int id = rs.getInt("id");
-                int id = rs.getInt(1);
-                //System.out.println("ID: " + id);
+            //int id = rs.getInt("id");
+            int id = rs.getInt(1);
+            //System.out.println("ID: " + id);
 
-                //String Compd_name = rs.getString("Compound_name");
-                String Compd_name = rs.getString(2);
-                //System.out.println("Compound name: " + Compd_name);
+            //String Compd_name = rs.getString("Compound_name");        MEJOR PORNERLO CON EL NOMBRE DE LAS COLUMNAS
+            String Compd_name = rs.getString(2);
+            //System.out.println("Compound name: " + Compd_name);
 
-                String formula = rs.getString(3);
-                //System.out.println("Formula: " + formula);
-                double m_mass = rs.getDouble(4);
-                //System.out.println("Monoisotopic Mass: " + m_mass);
-                double m_z = rs.getDouble(5);
-                //System.out.println("M_z: " + m_z);
-                double mt_compnd = rs.getDouble(6);
-                // System.out.println("MT_compnd: " + mt_compnd);
-                double mt_mets = rs.getDouble(7);
-                //System.out.println("MT_mets: " + mt_mets);
-                double rmt_mets = rs.getDouble(8);
-                //System.out.println("RMT_mets: " + rmt_mets);
-                double mt_mes = rs.getDouble(9);
-                //System.out.println("MT_mes: " + mt_mes);
-                double rmt_mes = rs.getDouble(10);
-                //System.out.println("RMT_mes: " + rmt_mes);
+            String formula = rs.getString(3);
+            //System.out.println("Formula: " + formula);
+            double m_mass = rs.getDouble(4);
+            //System.out.println("Monoisotopic Mass: " + m_mass);
+            double m_z = rs.getDouble(5);
+            //System.out.println("M_z: " + m_z);
+            double mt_compnd = rs.getDouble(6);
+            // System.out.println("MT_compnd: " + mt_compnd);
+            double mt_mets = rs.getDouble(7);
+            //System.out.println("MT_mets: " + mt_mets);
+            double rmt_mets = rs.getDouble(8);
+            //System.out.println("RMT_mets: " + rmt_mets);
+            double mt_mes = rs.getDouble(9);
+            //System.out.println("MT_mes: " + mt_mes);
+            double rmt_mes = rs.getDouble(10);
+            //System.out.println("RMT_mes: " + rmt_mes);
 
-                // Select de los fragmentos. Creando un metodo getFragmentos, solo reciba el parámetro int ID
-                List<Fragment> fragments = getFragments("Select * from fragments where ID_MET = " + id);
-                Metabolito m1 = new Metabolito(Compd_name, formula, m_mass, m_z, mt_compnd, mt_mets, rmt_mets, mt_mes, rmt_mes, fragments);
-                return m1;
-            }
-            rs.close();
+            // Select de los fragmentos. Creando un metodo getFragmentos, solo reciba el parámetro int ID
+            List<Fragment> fragments = getFragments(id);
+            Metabolito m1 = new Metabolito(Compd_name, formula, m_mass, m_z, mt_compnd, mt_mets, rmt_mets, mt_mes, rmt_mes, fragments);
+            return m1;
         } catch (SQLException ex) {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -155,8 +162,48 @@ public class DBManager {
      * @param query
      * @return the list of fragments or null
      */
-    private List<Fragment> getFragments(String query) {
-        List<Fragment> fragments = new LinkedList<Fragment>();
+    private List<Fragment> getFragments(int id) {
+
+        String query = ConstantQueries.SELECTFRAGMENTSFROMID;
+        List<Fragment> fragments = new LinkedList<>();
+        try {
+            PreparedStatement statement2 = this.connection.prepareStatement(query);
+            statement2.setInt(1, id);   //para evitar la sql injection
+            try {
+                ResultSet rs = statement2.executeQuery();
+                while (rs.next()) {
+                    double m_z = rs.getDouble("m_z");
+                    double intensity = rs.getDouble("intensity");
+
+                    fragments.add(new Fragment(m_z, intensity));   //la columna que contiene el m_z es la tres
+                    //System.out.println("frag: " + fragments);
+                }
+                rs.close();
+                return fragments;
+            } catch (SQLException ex) {
+                Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+                return null;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
+    }
+
+    /**
+     * TO DO It executes the query and returns the list of Fragments returned by
+     * the mz and its tolerance
+     *
+     * @param mz mz of the fragments to find
+     * @param tolerance tolerance in ppm
+     * @return the list of fragments or null
+     */
+    private List<Fragment> getFragmentsFromMZRange(float mz, float tolerance) {
+
+        // hay que crear la query para introducir la mz y la tolerancia por parametros
+        // delta es el calculo de las ppm del mz
+        String query = "Select * from fragments where mz < mz+delta and mz > mz-delta";
+        List<Fragment> fragments = new LinkedList<>();
 
         try {
             statement.execute(query);
@@ -178,15 +225,16 @@ public class DBManager {
      * @param query
      * @return list of metabolites
      */
-    private List<Metabolito> getMetabolitos(String query) {
+    public List<Metabolito> getMetabolitos(String query) {
+        System.out.println(query);
         List<Metabolito> metabs = new LinkedList<Metabolito>();
         try {
             statement.execute(query);
             ResultSet rs = statement.executeQuery(query);
-            System.out.println(rs.getRow());
             while (rs.next()) {
-                System.out.println(rs.getRow());
-                metabs.add(getMetabolito(query));
+                System.out.println("ROW: " + rs.getRow());
+                Metabolito m1 = getMetabolito(rs);  //no podemos estar trabajando con dos result sets distintos
+                metabs.add(m1);
                 //System.out.println(metabs);
 
             }
@@ -206,14 +254,23 @@ public class DBManager {
 
         // mediante una llamada al metodo insertMetabolito (devuelve el ID generado.
         // mediante otra llamada la insercion de los fragmentos.
+        // PARA INSERTS SE UTILIZA executeUPDATE. Una vez ejecuto el insert con
+        // parametros PREPAREDSTATEMENT para crearlo,
+        // ps.setTIPO(POSICION,VALOR);
+        // ps.executeQuery(); IMPORTANTE SIN PARAMETROS QUE ES UN PREPAREDSTATEMENT
+        // ps.getGeneratedKeys();
+        // SI SOLO HE HECHO UN INSERT, devolverá un único entero correspondiente
+        // a la fila insertada
     }
 
     /**
+     * SHOULD NOT BE USED..!!! It does not use preparedStaments so it is
+     * vulnerable to SQL Injection
      *
      * @param query
      * @return the ID of the query or 0 if the result is null
      */
-    public int exampleQueryToGetTheLastGeneratedIdFromAnInsert(String query) {
+    private int exampleQueryToGetTheLastGeneratedIdFromAnInsert(String query) {
         int id = 0;
         // Be aware that the connection should be initialized (calling the method connectToDB
 
@@ -265,9 +322,11 @@ public class DBManager {
             System.out.println("Fragments: \n" + fragments);*/
             //GETMETABOLITOS
             //List<Metabolito> metabs = db.getMetabolitos("select * from metabolites");
-            List<Metabolito> metabs = db.getMetabolitos("select * from metabolites where ID = 1");
+            List<Metabolito> metabs = db.getMetabolitos("select * from metabolites");
             System.out.println("Estos son los metabolitos almacenados: \n" + metabs);
 
+            //List<Fragment> fragments = db.getFragments(2);
+            //System.out.println("Estos son los fragmentos almacenados: \n" + fragments);
             // SI NO INSERTA NADA, AUTO_GENERATED KEYS DEVUELVE 0
             /*int id_updated = db.exampleQueryToGetTheLastGeneratedIdFromAnInsert("update prueba set f1 = 2 where id=2");
             System.out.println(id_updated);
