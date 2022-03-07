@@ -58,7 +58,7 @@ public class Metabolito {
                 + this.m_z + "\n\tMTcompound: " + this.MTcompnd + "\n\tMTmets: " + this.MTmets + "\n\tRMTmets: "
                 + this.RMTmets + "\n\tMTmes: " + this.MTmes + "\n\tRMTmes: " + this.RMTmes + "\n\tFragments:\n";
 
-        if (this.fragments == null) {
+        if (this.fragments == null || this.fragments.isEmpty()) {
             return human_readable_string + "\t\tThere are no fragments\n\n";
         }
         //else
@@ -69,4 +69,43 @@ public class Metabolito {
         return human_readable_string + fragmentos + "\n\n";
     }
 
+    public String getCompound() {
+        return this.compound;
+    }
+
+    public String getFormula() {
+        return this.formula;
+    }
+
+    public Double getM() {
+        return this.M;
+    }
+
+    public Double getM_Z() {
+        return this.m_z;
+    }
+
+    public Double getMT_compound() {
+        return this.MTcompnd;
+    }
+
+    public Double getMT_Mets() {
+        return this.MTmets;
+    }
+
+    public Double getRMT_Mets() {
+        return this.RMTmets;
+    }
+
+    public Double getMT_Mes() {
+        return this.MTmes;
+    }
+
+    public Double getRMT_Mes() {
+        return this.RMTmes;
+    }
+
+    public List<Fragment> getFragments() {
+        return this.fragments;
+    }
 }

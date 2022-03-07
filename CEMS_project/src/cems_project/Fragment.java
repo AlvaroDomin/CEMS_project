@@ -24,11 +24,27 @@ public class Fragment {
     }
 
     public Fragment(Double m_z) {
-        this(m_z, null);
+        //this(m_z, null);
+        this.m_z = m_z;
+        this.intensity = null;
     }
 
     @Override
     public String toString() {
         return "\t\tM_z (f): " + this.m_z + "\n\t\tIntensity (f): " + this.intensity + "\n";
     }
+
+    public static void main(String[] args) {
+        Fragment f1 = new Fragment(78.9594);
+        System.out.println(f1);
+    }
+
+    public Double getM_Z() {
+        return this.m_z;
+    }
+
+    public Double getIntensity() {
+        return this.intensity;
+    }
+
 }
