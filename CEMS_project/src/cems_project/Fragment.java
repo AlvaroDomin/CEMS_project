@@ -16,7 +16,7 @@ public class Fragment {
 
     public Fragment(Double m_z, Double intensity) {
         this.m_z = m_z;
-        if (intensity < 0.0001d) {
+        if (intensity != null && intensity < 0.0001d) {
             this.intensity = null;
         } else {
             this.intensity = intensity;

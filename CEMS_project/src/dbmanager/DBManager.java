@@ -292,12 +292,16 @@ public class DBManager {
                     insertFragments(id, fragments);
 
                 } catch (SQLException ex) {
+                    System.out.println("Metabolito: " + metabolito + " NOT INSERTED. Check Excel File. AUTO_GENERATED_KEYS FAILED" + ex.getMessage());
                     Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } catch (SQLException ex) {
+                System.out.println("Metabolito: " + metabolito + " NOT INSERTED. Check Excel File. INSERT FAILED" + ex.getMessage());
                 Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
             }
         } catch (SQLException ex) {
+
+            System.out.println("Metabolito: " + metabolito + " NOT INSERTED. Check Excel File. PREPARE STATEMENT COULD NOT BE CREATED" + ex.getMessage());
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
         }
 
@@ -311,18 +315,31 @@ public class DBManager {
     public void insertFragments(int id, List<Fragment> fragments)/*throws Exception*/ {
 
         String query = ConstantQueries.INSERTFRAGMENTSFROMID;
+        Double m_z = null;
+        Double intensity = null;
         try {
             PreparedStatement ps = this.connection.prepareStatement(query);
             ps.setInt(1, id);
 
             for (int i = 0; i < fragments.size(); i++) {
-                ps.setDouble(2, fragments.get(i).getM_Z());
-                ps.setDouble(3, fragments.get(i).getIntensity());
+
+                m_z = fragments.get(i).getM_Z();
+                ps.setDouble(2, m_z);
+
+                intensity = fragments.get(i).getIntensity();
+                if (intensity == null) {
+
+                    ps.setNull(3, java.sql.Types.NULL);
+                } else {
+                    ps.setDouble(3, intensity);
+                }
                 ps.executeUpdate();
             }
 
         } catch (SQLException ex) {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NullPointerException npe) {
+            System.out.println("El compuesto con ID " + id + " No ha insertado el fragmento con m/z = " + m_z + " porque es null");
         }
 
     }
