@@ -5,9 +5,16 @@
  */
 package cems_project;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import dbmanager.DBManager;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import static utilities.fileIO.readStringFromFile;
 
 /**
  *
@@ -16,6 +23,47 @@ import java.util.regex.Pattern;
 public class Ejecutable {
 
     public static void main(String[] args) {
+        //imprimimos la lista de metabolitos que tenemos
+        List<Metabolito> metabolitos = Fichero.leerFichero();
+        for (Metabolito m : metabolitos) {
+            System.out.println(m);
+        }
+
+        //conectamos con la database
+        DBManager db = new DBManager();
+        String filename = "resources/connectionData.pass";
+        try {
+            Gson gson = new Gson();
+            String readJSONStr = readStringFromFile(filename);
+            JsonElement element = gson.fromJson(readJSONStr, JsonElement.class);
+            JsonObject jsonObj = element.getAsJsonObject();
+            String dbName = jsonObj.get("db_name").getAsString();
+            String dbUser = jsonObj.get("db_user").getAsString();
+            String dbPassword = jsonObj.get("db_password").getAsString();
+
+            db.connectToDB("jdbc:mysql://localhost/" + dbName + "?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true", dbUser, dbPassword);
+
+            //insertamos los metabolitos leidos
+            for (Metabolito m : metabolitos) {
+                db.insertMetabolito(m);
+            }
+
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+
+        } catch (IOException ioe) {
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ioe);
+        }
+    }
+    /*public static void main(String[] args) {
+        //imprimimos la lista de metabolitos que tenemos
+        List<Metabolito> metabolitos = Fichero.leerFichero();
+        for (Metabolito m : metabolitos) {
+            System.out.println(m);
+        }
+    }*/
+
+ /*public static void main(String[] args) {
 
         // Testing regex
         String myString = "44.9989(0V), 79.9577, 130.0878";
@@ -33,8 +81,7 @@ public class Ejecutable {
         for (Metabolito m : metabolitos) {
             System.out.println(m);
         }
-    }
-
+    }*/
 }
 
 /*String s = "44.9989 (0V), 79.9576, 130.0877";

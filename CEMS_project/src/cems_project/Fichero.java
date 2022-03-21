@@ -59,6 +59,7 @@ public class Fichero {
             Double RMTmes;
 
             while (rowIt.hasNext()) {   //este bucle va avanzando linea a linea
+
                 Row row = rowIt.next();
 
                 //iterate on cells for the current row
@@ -114,8 +115,7 @@ public class Fichero {
 
                 } else {    //en caso de que si que lea algo, se añaden a la lista
 
-                    fragmentsLeidos = celdaLeida.split(",");    //los fragmentos estan separados por comas
-
+                    fragmentsLeidos = celdaLeida.split("[,;]");    //los fragmentos estan separados por comas
                     for (String s : fragmentsLeidos) {  //recorremos cada uno de los fragmentos (todavia en Strings)
 
                         try {       //si no se puede meter, es porque no solo hay numeros

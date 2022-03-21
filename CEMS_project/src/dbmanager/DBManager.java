@@ -46,10 +46,10 @@ public class DBManager {
             // MySQL driver registered
             //DriverManager.registerDriver(new org.gjt.mm.mysql.Driver());
 
-            // get DatabaseConnection
-            connection = DriverManager.getConnection(bd, usuario, clave);
-
+            // get or open the DatabaseConnection
+            connection = DriverManager.getConnection(bd, usuario, clave);       //getConnection is a static method
             statement = this.connection.createStatement();
+            //create an statement, pass the query and execute
         } catch (SQLException ex) {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -253,6 +253,8 @@ public class DBManager {
      */
     public void insertMetabolito(Metabolito metabolito) /*throws Exception*/ {
 
+        System.out.println("El metabolito a insertar es:");
+        System.out.println(metabolito);
         // mediante una llamada al metodo insertMetabolito (devuelve el ID generado.
         // mediante otra llamada la insercion de los fragmentos.
         // PARA INSERTS SE UTILIZA executeUPDATE. Una vez ejecuto el insert con
@@ -269,15 +271,37 @@ public class DBManager {
             ps.setString(2, metabolito.getFormula());
             ps.setDouble(3, metabolito.getM());
             ps.setDouble(4, metabolito.getM_Z());
-            ps.setDouble(5, metabolito.getMT_compound());
-            ps.setDouble(6, metabolito.getMT_Mets());
-            ps.setDouble(7, metabolito.getRMT_Mets());
-            ps.setDouble(8, metabolito.getMT_Mes());
-            ps.setDouble(9, metabolito.getRMT_Mes());
+            try {
+                ps.setDouble(5, metabolito.getMT_compound());
+            } catch (NullPointerException e) {
+                ps.setNull(5, 0);
+            }
+            try {
+                ps.setDouble(6, metabolito.getMT_Mets());
+            } catch (NullPointerException e) {
+                ps.setNull(6, 0);
+            }
+            try {
+                ps.setDouble(7, metabolito.getRMT_Mets());
+            } catch (NullPointerException e) {
+                ps.setNull(7, 0);
+            }
+            try {
+                ps.setDouble(8, metabolito.getMT_Mes());
+            } catch (NullPointerException e) {
+                ps.setNull(8, 0);
+            }
+            try {
+                ps.setDouble(9, metabolito.getRMT_Mes());
+            } catch (NullPointerException e) {
+                ps.setNull(9, 0);
+            }
+
             List<Fragment> fragments = metabolito.getFragments();
             //------------------
             try {
                 ps.executeUpdate();                 //este es el sentence que insertea la info
+                //usamos update despues de tener el statement y la query (update para insert, update y delete)
                 //System.out.println("insertado");
 
                 //hallamos el id del metabolito que acabamos de introducir para mandarlo a insertFragmentos
@@ -381,8 +405,7 @@ public class DBManager {
         try {
             Gson gson = new Gson();
             String readJSONStr = readStringFromFile(filename);
-            JsonElement element = gson.fromJson(readJSONStr, JsonElement.class
-            );
+            JsonElement element = gson.fromJson(readJSONStr, JsonElement.class);
             JsonObject jsonObj = element.getAsJsonObject();
             String dbName = jsonObj.get("db_name").getAsString();
             String dbUser = jsonObj.get("db_user").getAsString();
@@ -426,12 +449,10 @@ public class DBManager {
             db.insertFragments(1, fragments);
 
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(DBManager.class
-                    .getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
 
         } catch (IOException ioe) {
-            Logger.getLogger(DBManager.class
-                    .getName()).log(Level.SEVERE, null, ioe);
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ioe);
         }
     }
 }

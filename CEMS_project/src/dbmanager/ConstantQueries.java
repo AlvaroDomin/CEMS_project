@@ -18,4 +18,5 @@ public class ConstantQueries {
 
     static final String INSERTINTOMETABOLITES = "Insert into metabolites (COMPOUND_NAME, FORMULA, MONOISOTOPIC_MASS, M_Z, mt_COMPND, MT_METS, RMT_METS, MT_MES, RMT_MES) VALUES(?,?,?,?,?,?,?,?,?)";
     static final String INSERTFRAGMENTSFROMID = "Insert into fragments (ID_MET, M_Z, INTENSITY) VALUES (?, ?, ?)";
+
 }
