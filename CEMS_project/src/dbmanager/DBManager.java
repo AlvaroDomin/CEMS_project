@@ -294,7 +294,7 @@ public class DBManager {
             try {
                 ps.setDouble(9, metabolito.getRMT_Mes());
             } catch (NullPointerException e) {
-                ps.setNull(9, 0);
+                ps.setNull(9, java.sql.Types.NULL); //Types.NULL = 0
             }
 
             List<Fragment> fragments = metabolito.getFragments();

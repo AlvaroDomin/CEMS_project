@@ -50,7 +50,6 @@ public class Ejecutable {
 
         } catch (FileNotFoundException ex) {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
-
         } catch (IOException ioe) {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ioe);
         }
