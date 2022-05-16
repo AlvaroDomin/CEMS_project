@@ -61,78 +61,221 @@ public class DBManager {
 
         //select id donde coincida la INCHI
         String sql = "SELECT compound_id FROM compound_identifiers WHERE inchi LIKE ?";
-        set(m.getInchi());
-        int compound_id = getInt(sql);
+        try {
+            PreparedStatement ps = this.connection.prepareStatement(sql);
+            ps.setString(1, m.getINCHI());
+            int compound_id = getInt(sql);
 
-        if (compound_id == 0) {
-            //tenemos que insertar toda la información correspondiente:
+            if (compound_id == 0) {
+                //tenemos que insertar toda la información correspondiente:
+                System.out.println("El metabolito no estaba insertado. Lo insertamos.");
+                //metemos el compuesto y guardamos el id asignado por MySQL
+                compound_id = insertCompound(m);
 
-            //metemos el compuesto y guardamos el id asignado por MySQL
-            compound_id = insertCompound(m);
+                //insertamos la estructura:  INCHI, INCHI_KEY Y SMILES (hay que calcularlo)
+                insertCompoundIdentifiers(compound_id, m.getINCHI());
+            }
 
-            //calculamos la estructura INCHI, INCHI_KEY Y SMILES
-            insertInchi(m.getInchi());
+            //metemos las referencias a la estructura OPTIONALLY, CHECK IF THEY ALREADY EXISTS
+            insertHMDB(compound_id, m.getRefHMDB());
+            insertPC(compound_id, m.getRefPubChem());
 
+            // SELECT CEEXPPROP ID FROM EXPERIMENTAL PROPERTIES NEG, INVERSO, TEMP y BUFFER
+            sql = ConstantQueries.SELECT_CE_EXP_PROP;
+            //"SELECT ce_exp_prop_id FROM ce_experimental_properties WHERE buffer = ? AND temperature = ? AND ionization_mode = ? AND polarity = ?"
+            ps = this.connection.prepareStatement(sql);
+            ps.setInt(1, ConstantQueries.BUFFER);
+            ps.setInt(2, ConstantQueries.TEMPERATURE);
+            ps.setInt(3, ConstantQueries.IONIZATION_MODE);
+            ps.setInt(4, ConstantQueries.POLARITY);
+            int ce_ex_prop_id = getInt(sql);
+
+            // INSERT EFF MOB
+            int ce_eff_mob_id = insertCeEffMob(compound_id, ce_ex_prop_id, m);
+
+            // INSERT METADATA WITH METH SULFONE
+            insertCeExpPropMet(ce_eff_mob_id, m);
+
+            // INSERT FRAGMENTS
+            //insertamos los fragmentos
+            List<Fragment> fragments = m.getFragments();
+            //por cada fragment de la lista
+            insertCompCeProdIon(compound_id, ce_eff_mob_id, fragments);
+
+        } catch (SQLException ex) {
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        //metemos las referencias a la estructura OPTIONALLY, CHECK IF THEY ALREADY EXISTS
-        insertHMDB(compound_id, m.getHMDB());
-        insertPC(compound_id, m.getPC());
-
-        // SELECT CEEXPPROP ID FROM EXPERIMENTAL PROPERTIES NEG, INVERSO, TEMP y BUFFER
-        // int id2 = SELECT ....
-        // INSERT EFF MOB
-        int id3 = insertCeEffMob(compound_id, id2, m);
-
-        // INSERT METADATA WITH METH SULFONE
-        insertCeExpPropMet(id3, m);
-
-        // INSERT FRAGMENTS
-        //insertamos los fragmentos
-        List<Fragment> fragments = m.getFragments();
-        //por cada fragment de la lista
-        insertCompCeProdIon(compound_id, id3, f);
-
-    }
-
-    public int insertInchi(String inchi) {
-        String sql = ConstantQueries.INSERT_COMP_IDENT;
-        set(inchi);
     }
 
     public int insertCompound(Metabolito m) {
         //devuelve el id del compound para usarlo como foreign key
+
+        int compound_id = 0;
         String sql = ConstantQueries.INSERT_COMPOUNDS;
-        set(m.getCompound());
-        set(m.getFormula());
-        set(m.getM());
-        return id;
+        //"INSERT INTO compounds (compound_name, formula, mass) VALUES (?, ?, ?)"
+        try {
+            PreparedStatement ps = this.connection.prepareStatement(sql);
+            ps.setString(1, m.getCompound());
+            ps.setString(2, m.getFormula());
+            ps.setDouble(3, m.getM());
+            ps.executeUpdate();                 //insertamos la info
+
+            //hallamos el compound id del metabolito que acabamos de introducir
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    compound_id = rs.getInt(1);
+                    System.out.println("CompoundId: " + compound_id);
+                }
+                rs.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return compound_id;
     }
 
-    public int insertCeExpProp() {
-        //devuelve el id que se acaba de insertar (ce_exp_prop_id)
-        String sql = ConstantQueries.INSERT_CE_EXP_PROP;
-        return id;
+    public void insertCompoundIdentifiers(int compound_id, String inchi) {
+
+        String sql = ConstantQueries.INSERT_COMP_IDENT;
+        //"INSERT INTO compound_identifiers (compound_id, inchi, inchi_key, smiles) VALUES (?, ?, ?, ?)"
+        try {
+            PreparedStatement ps = this.connection.prepareStatement(sql);
+            ps.setInt(1, compound_id);
+            ps.setString(2, inchi);
+            String key = getINCHIKeyFromInchi(inchi);
+            String smiles = getSMILESFromInchi(inchi);
+            ps.setString(3, key);
+            ps.setString(4, smiles);
+            ps.executeUpdate();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ioe) {
+
+        } catch (WrongRequestException wre) {
+
+        }
     }
 
-    public int insertCeEffMob(int id, int id2, Metabolito m) {
+    public void insertHMDB(int compound_id, String HMDB) {
+        String sql = ConstantQueries.INSERT_COMP_HMDB;
+        //"INSERT INTO compounds_hmdb (hmdb_id, compound_id) VALUES (?, ?)"
+        try {
+            PreparedStatement ps = this.connection.prepareStatement(sql);
+            ps.setInt(1, compound_id);
+            ps.setString(2, HMDB);
+            ps.executeUpdate();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void insertPC(int compound_id, int pc) {
+        String sql = ConstantQueries.INSERT_COMP_PC;
+        //"INSERT INTO compounds_pc (pc_id, compound_id) VALUES (?, ?)"
+        try {
+            PreparedStatement ps = this.connection.prepareStatement(sql);
+            ps.setInt(1, compound_id);
+            ps.setInt(2, pc);
+            ps.executeUpdate();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public int insertCeEffMob(int compound_id, int ce_ex_prop_id, Metabolito m) {
         //returns el id que se acaba de insertar (ce_eff_mob_id)
         String sql = ConstantQueries.INSERT_CE_EFF_MOB;
-        set(id);
-        set(id2);
-        set(m.getEffMob());
-        return id3;
+        //"INSERT INTO ce_eff_mob(ce_compound_id, ce_exp_prop_id, eff_mobility) VALUES(?, ?, ?)"
+        int ce_eff_mob_id = 0;
+        try {
+            PreparedStatement ps = this.connection.prepareStatement(sql);
+            ps.setInt(1, compound_id);
+            ps.setInt(2, ce_ex_prop_id);
+            ps.setDouble(3, m.getEff_mobility());
+            ps.executeUpdate();
+
+            //ahora tenemos que obtener el ce_eff_mob_id que se acaba de insertar
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    ce_eff_mob_id = rs.getInt(1);
+                    System.out.println("Last ce_eff_mob_id: " + ce_eff_mob_id);       //este id es el que se manda a el insert de los fragments
+                }
+                rs.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return ce_eff_mob_id;
     }
 
-    public void insertCeExpPropMet(int id3, Metabolito m) {
-        //insertamos lo referente a la metionina sulfona
-        String sql = ConstantQueries.INSERT_CE_EXP_PROP_META_METS;
-        //insertamos lo referente al paracetamol
-        sql = ConstantQueries.INSERT_CE_EXP_PROP_META_MES;
+    public void insertCeExpPropMet(int ce_eff_mob_id, Metabolito m) {
+
+        String sql = ConstantQueries.INSERT_CE_EXP_PROP_META;
+        //"INSERT INTO ce_experimental_properties_metadata(ce_eff_mob_id, experimental_mz, capillary_voltage, capillary_length, bge_compound_id, absolute_MT, relative_MT) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        try {
+            PreparedStatement ps = this.connection.prepareStatement(sql);
+            //insertamos lo referente a la metionina sulfona
+            ps.setInt(1, ce_eff_mob_id);
+            ps.setDouble(2, m.getM_Z());
+            ps.setInt(3, ConstantQueries.CAPILLARY_VOLTAGE);
+            ps.setInt(4, ConstantQueries.CAPILLARY_LENGTH);
+            ps.setInt(5, ConstantQueries.BGE_COMPOUND_ID_METS);
+            ps.setDouble(6, m.getMT_Mets());
+            ps.setDouble(7, m.getRMT_Mets());
+            ps.executeUpdate();
+
+            //insertamos lo referente al paracetamol
+            ps.setInt(1, ce_eff_mob_id);
+            ps.setDouble(2, m.getM_Z());
+            ps.setInt(3, ConstantQueries.CAPILLARY_VOLTAGE);
+            ps.setInt(4, ConstantQueries.CAPILLARY_LENGTH);
+            ps.setInt(5, ConstantQueries.BGE_COMPOUND_ID_MES);
+            ps.setDouble(6, m.getMT_Mes());
+            ps.setDouble(7, m.getRMT_Mes());
+            ps.executeUpdate();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 
-    public void insertCompCeProdIon(int id, int id3, Fragment f) {
+    public void insertCompCeProdIon(int compound_id, int ce_eff_mob_id, List<Fragment> fragments) {
         String sql = ConstantQueries.INSERT_COMP_CE_PROD_ION;
+        //"INSERT INTO compound_ce_product_ion (ion_source_voltage, ce_product_ion_mz, ce_product_ion_intensity,  ce_product_ion_type, ce_eff_mob_id, compound_id_own) VALUES (?, ?, ?, 'fragment', ?, ?)"
+
+        Double intensity;
+        try {
+            PreparedStatement ps = this.connection.prepareStatement(sql);
+
+            for (int i = 0; i < fragments.size(); i++) {
+                ps.setInt(1, ConstantQueries.ION_SOURCE_VOLTAGE);
+                ps.setDouble(2, fragments.get(i).getM_Z());
+
+                intensity = fragments.get(i).getIntensity();
+                if (intensity == null) {
+
+                    ps.setNull(3, java.sql.Types.NULL);
+                } else {
+                    ps.setDouble(3, intensity);
+                }
+                ps.setInt(4, ce_eff_mob_id);
+                ps.setInt(5, compound_id);
+                ps.executeUpdate();
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NullPointerException npe) {
+            //System.out.println("El compuesto con ID " + id + " No ha insertado el fragmento con m/z = " + m_z + " porque es null");
+        }
 
     }
 
@@ -144,7 +287,7 @@ public class DBManager {
      * @return the ID of the query or 0 if the result is null
      */
     public int getInt(String query) {
-        int id = -1;
+        int id = 0;
         // Be aware that the connection should be initialized (calling the method connectToDB)
         try {
             ResultSet rs = statement.executeQuery(query);   //es un iterador
@@ -333,101 +476,78 @@ public class DBManager {
      * @param metabolito
      * @throws Exception
      */
-//    public void insertMetabolito(Metabolito metabolito) /*throws Exception*/ {
-//
-//        System.out.println("El metabolito a insertar es:");
-//        System.out.println(metabolito);
-//        // mediante una llamada al metodo insertMetabolito (devuelve el ID generado.
-//        // mediante otra llamada la insercion de los fragmentos.
-//        // PARA INSERTS SE UTILIZA executeUPDATE. Una vez ejecuto el insert con
-//        // parametros PREPAREDSTATEMENT para crearlo,
-//        // ps.setTIPO(POSICION,VALOR);
-//        // ps.executeQuery(); IMPORTANTE SIN PARAMETROS QUE ES UN PREPAREDSTATEMENT
-//        // ps.getGeneratedKeys();
-//        // SI SOLO HE HECHO UN INSERT, devolverá un único entero correspondiente
-//        // a la fila insertada
-//        String query = ConstantQueries.INSERTINTOMETABOLITES;
-//        try {
-//            PreparedStatement ps = this.connection.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
-//            ps.setString(1, metabolito.getCompound());
-//            ps.setString(2, metabolito.getFormula());
-//            ps.setDouble(3, metabolito.getM());
-//            ps.setDouble(4, metabolito.getM_Z());
-//            try {
-//                ps.setDouble(5, metabolito.getMT_compound());
-//            } catch (NullPointerException e) {
-//                ps.setNull(5, 0);
-//            }
-//            try {
-//                ps.setDouble(6, metabolito.getMT_Mets());
-//            } catch (NullPointerException e) {
-//                ps.setNull(6, 0);
-//            }
-//            try {
-//                ps.setDouble(7, metabolito.getRMT_Mets());
-//            } catch (NullPointerException e) {
-//                ps.setNull(7, 0);
-//            }
-//            try {
-//                ps.setDouble(8, metabolito.getMT_Mes());
-//            } catch (NullPointerException e) {
-//                ps.setNull(8, 0);
-//            }
-//            try {
-//                ps.setDouble(9, metabolito.getRMT_Mes());
-//            } catch (NullPointerException e) {
-//                ps.setNull(9, java.sql.Types.NULL); //Types.NULL = 0
-//            }
-//
-//            List<Fragment> fragments = metabolito.getFragments();
-//            //------------------
-//            try {
-//                ps.executeUpdate();                 //este es el sentence que insertea la info
-//                //usamos update despues de tener el statement y la query (update para insert, update y delete)
-//                //System.out.println("insertado");
-//
-//                //hallamos el id del metabolito que acabamos de introducir para mandarlo a insertFragmentos
-//                int id = 0;
-//                try (ResultSet rs = ps.getGeneratedKeys()) {
-//                    if (rs.next()) {
-//                        id = rs.getInt(1);
-//                        System.out.println("Last id: " + id);       //este id es el que se manda a el insert de los fragments
-//                    }
-//                    rs.close();
-//                    System.out.println("ahora se insertan los fragmentos del metabolito " + id);
-//                    insertFragments(id, fragments);
-//
-//                } catch (SQLException ex) {
-//                    System.out.println("Metabolito: " + metabolito + " NOT INSERTED. Check Excel File. AUTO_GENERATED_KEYS FAILED" + ex.getMessage());
-//                    Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
-//                }
-//            } catch (SQLException ex) {
-//                System.out.println("Metabolito: " + metabolito + " NOT INSERTED. Check Excel File. INSERT FAILED" + ex.getMessage());
-//                Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
-//            }
-//        } catch (SQLException ex) {
-//
-//            System.out.println("Metabolito: " + metabolito + " NOT INSERTED. Check Excel File. PREPARE STATEMENT COULD NOT BE CREATED" + ex.getMessage());
-//            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//
-//    }
-    /**
-     *
-     * @param metabolito
-     * @throws Exception
-     */
     public void insertMetabolito(Metabolito metabolito) /*throws Exception*/ {
 
         System.out.println("El metabolito a insertar es:");
         System.out.println(metabolito);
-        String query = "Insert into metabolites (COMPOUND_NAME, FORMULA, MONOISOTOPIC_MASS) VALUES(?,?,?)";
+        // mediante una llamada al metodo insertMetabolito (devuelve el ID generado.
+        // mediante otra llamada la insercion de los fragmentos.
+        // PARA INSERTS SE UTILIZA executeUPDATE. Una vez ejecuto el insert con
+        // parametros PREPAREDSTATEMENT para crearlo,
+        // ps.setTIPO(POSICION,VALOR);
+        // ps.executeQuery(); IMPORTANTE SIN PARAMETROS QUE ES UN PREPAREDSTATEMENT
+        // ps.getGeneratedKeys();
+        // SI SOLO HE HECHO UN INSERT, devolverá un único entero correspondiente
+        // a la fila insertada
+        String query = ConstantQueries.INSERTINTOMETABOLITES;
         try {
             PreparedStatement ps = this.connection.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
             ps.setString(1, metabolito.getCompound());
             ps.setString(2, metabolito.getFormula());
             ps.setDouble(3, metabolito.getM());
+            ps.setDouble(4, metabolito.getM_Z());
+            try {
+                ps.setDouble(5, metabolito.getMT_compound());
+            } catch (NullPointerException e) {
+                ps.setNull(5, 0);
+            }
+            try {
+                ps.setDouble(6, metabolito.getMT_Mets());
+            } catch (NullPointerException e) {
+                ps.setNull(6, 0);
+            }
+            try {
+                ps.setDouble(7, metabolito.getRMT_Mets());
+            } catch (NullPointerException e) {
+                ps.setNull(7, 0);
+            }
+            try {
+                ps.setDouble(8, metabolito.getMT_Mes());
+            } catch (NullPointerException e) {
+                ps.setNull(8, 0);
+            }
+            try {
+                ps.setDouble(9, metabolito.getRMT_Mes());
+            } catch (NullPointerException e) {
+                ps.setNull(9, java.sql.Types.NULL); //Types.NULL = 0
+            }
 
+            List<Fragment> fragments = metabolito.getFragments();
+            //------------------
+            try {
+                ps.executeUpdate();                 //este es el sentence que insertea la info
+                //usamos update despues de tener el statement y la query (update para insert, update y delete)
+                //System.out.println("insertado");
+
+                //hallamos el id del metabolito que acabamos de introducir para mandarlo a insertFragmentos
+                int id = 0;
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        id = rs.getInt(1);
+                        System.out.println("Last id: " + id);       //este id es el que se manda a el insert de los fragments
+                    }
+                    rs.close();
+                    System.out.println("ahora se insertan los fragmentos del metabolito " + id);
+                    insertFragments(id, fragments);
+
+                } catch (SQLException ex) {
+                    System.out.println("Metabolito: " + metabolito + " NOT INSERTED. Check Excel File. AUTO_GENERATED_KEYS FAILED" + ex.getMessage());
+                    Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } catch (SQLException ex) {
+                System.out.println("Metabolito: " + metabolito + " NOT INSERTED. Check Excel File. INSERT FAILED" + ex.getMessage());
+                Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
         } catch (SQLException ex) {
 
             System.out.println("Metabolito: " + metabolito + " NOT INSERTED. Check Excel File. PREPARE STATEMENT COULD NOT BE CREATED" + ex.getMessage());
@@ -521,8 +641,8 @@ public class DBManager {
             db.connectToDB("jdbc:mysql://localhost/" + dbName + "?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true", dbUser, dbPassword);
 
             //GET INT
-            //int id = db.getInt("Select ID from metabolites where id = 1");
-            //System.out.println(id);
+            int id = db.getInt("Select ID from metabolites where id = 3");
+            System.out.println(id);
             //GET STRING
             //String word = db.getString("Select \"asd\"");
             //System.out.println(word);
@@ -549,8 +669,8 @@ public class DBManager {
 //            fragments.add(new Fragment(78.9594));
 //            fragments.add(new Fragment(96.9671));
 //            fragments.add(new Fragment(138.9802));
-            Metabolito metabolito = new Metabolito("Fructose 1,6 Biphosphate", "C6H14O12P2", 339.9960, 338.9887, 9.739, 27.135, 0.36, 20.187, 0.48, fragments);
-            db.insertMetabolito(metabolito);
+//            Metabolito metabolito = new Metabolito("Fructose 1,6 Biphosphate", "C6H14O12P2", 339.9960, 338.9887, 9.739, 27.135, 0.36, 20.187, 0.48, fragments);
+//            db.insertMetabolito(metabolito);
             //db.insertFragments(1, fragments);
 
         } catch (FileNotFoundException ex) {

@@ -11,9 +11,10 @@ package constants;
  */
 public class Constants {
 
-    public static String CEFilePath = "C:/Users/maria/Documents/CEU/beca/Tabla_patrones_CEMSnegneg.xlsx";
+    public static String CEFilePath = "C:/Users/maria/Documents/CEU/beca/Tabla_patrones_CEMSnegnegCorregido.xlsx";
 
     //Tabla_patrones_CEMSnegneg
     //Tabla_patrones_CEMSnegnegCorregido
     //prueba
+    //prueba2
 }

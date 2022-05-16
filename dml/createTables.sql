@@ -2,10 +2,67 @@
 create database IF NOT EXISTS CEMS;
 use CEMS;
 
+drop table IF EXISTS compounds;
+drop table IF EXISTS compound_identifiers;
+drop table IF EXISTS compounds_hmdb;
 drop table IF EXISTS ce_experimental_properties;
 drop table IF EXISTS ce_eff_mob;
 drop table IF EXISTS ce_experimental_properties_metadata;
 drop table IF EXISTS compound_ce_product_ion;
+
+
+-- COMPOUND TYPE: 0 for metabolites, 1 for lipids, 2 for peptides, 3 for oxidized compounds
+CREATE TABLE compounds (
+  compound_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  cas_id varchar(100) UNIQUE DEFAULT NULL,
+  compound_name text not null,
+  formula varchar(100) DEFAULT '',
+  mass double DEFAULT 0,
+  charge_type int default 0, -- charge 0 for neutral, 1 for positive 2 for negative
+  charge_number int default 0, -- number of charges (negative or positive)
+  formula_type varchar(20) DEFAULT NULL, -- CHNOPS, CHNOPSD, CHNOPSCL, CHNOPSCLD, ALLD or ALL
+  formula_type_int int, -- 0 CHNOPS, 1 CHNOPSD, 2 CHNOPSCL, 3 CHNOPSCLD, 4 ALL, 5 ALLD
+  compound_type int default 0, -- type of compound: 0 for metabolite, 1 for lipids, 2 for peptide
+  compound_status int default 0, -- status of compound: 0 expected, 1 detected, 2 quantified, 3 predicted (HMDB)
+  logP double default null, -- LogP of the compound. By default null
+  created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX compounds_cas_id_index (cas_id),
+  INDEX compounds_formula_index (formula),
+  INDEX compounds_mass_index (mass),
+  INDEX compounds_charge_type_index (charge_type),
+  INDEX compounds_formula_type_index (formula_type),
+  INDEX compounds_formula_type_int_index (formula_type_int),
+  INDEX compounds_compound_type_index (compound_type),
+  INDEX compounds_compound_status_index (compound_status),
+  INDEX compounds_logP_index (logP)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+CREATE TABLE compound_identifiers (
+  compound_id INT NOT NULL,
+  inchi varchar(1800) DEFAULT '',
+  inchi_key varchar(50) DEFAULT '' UNIQUE NOT NULL,
+  smiles varchar(1200) DEFAULT '',
+  created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (compound_id) REFERENCES compounds(compound_id) on DELETE CASCADE,
+  CONSTRAINT pk_inchi PRIMARY KEY (compound_id),
+  INDEX inchi_key_index (inchi_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE compounds_hmdb (
+  compound_id INT NOT NULL,
+  hmdb_id varchar(100) NOT NULL,
+  created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (compound_id) REFERENCES compounds(compound_id) on DELETE CASCADE,
+  CONSTRAINT pk_compounds_hmdb PRIMARY KEY (compound_id,hmdb_id),
+  INDEX hmdb_id_index (hmdb_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
 
 create table ce_experimental_properties(
   ce_exp_prop_id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,

@@ -45,7 +45,7 @@ public class Ejecutable {
 
             //insertamos los metabolitos leidos
             for (Metabolito m : metabolitos) {
-                db.insertMetabolito(m);
+                db.insertMetabolite(m);
             }
 
         } catch (FileNotFoundException ex) {
@@ -54,7 +54,20 @@ public class Ejecutable {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ioe);
         }
     }
+    //MAIN PARA PROBAR LO DE LAS INCHIKEYS Y SMILES
     /*public static void main(String[] args) {
+        try {
+            String inchi = "InChI=1S/C3H8O10P2/c4-3(5)2(13-15(9,10)11)1-12-14(6,7)8/h2H,1H2,(H,4,5)(H2,6,7,8)(H2,9,10,11)/t2-/m1/s1";
+            String key = getINCHIKeyFromInchi(inchi);
+            String smiles = getSMILESFromInchi(inchi);
+
+        } catch (IOException ioe) {
+
+        } catch (WrongRequestException wre) {
+
+        }
+    }*/
+ /*public static void main(String[] args) {
         //imprimimos la lista de metabolitos que tenemos
         List<Metabolito> metabolitos = Fichero.leerFichero();
         for (Metabolito m : metabolitos) {

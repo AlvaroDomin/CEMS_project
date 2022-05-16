@@ -40,15 +40,18 @@ public class Fichero {
             // we get first sheet
             XSSFSheet sheet = workbook.getSheetAt(0);   //Get the HSSFSheet object at the given index
             int totalRows = sheet.getPhysicalNumberOfRows();
-            System.out.println("READING " + (totalRows - 2) + " compounds\n");
+            System.out.println("READING " + (totalRows - 1) + " compounds\n");
 
             Iterator<Row> rowIt = sheet.iterator();
             // skip the header
             rowIt.next();   //lee la linea en la que pone "Patrones"
-            rowIt.next(); //se salta la linea en la que pone COMPOUND, FORMULA...
+            //rowIt.next(); //se salta la linea en la que pone COMPOUND, FORMULA...
 
             //creamos todas las variables que vamos a ir necesitando
             String name;
+            String INCHI;
+            String RefHMDB;
+            Integer RefPubChem;
             String formula;
             Double M;
             Double m_z;
@@ -57,6 +60,7 @@ public class Fichero {
             Double RMTmets;
             Double MTmes;
             Double RMTmes;
+            Double eff_mobility;
 
             while (rowIt.hasNext()) {   //este bucle va avanzando linea a linea
 
@@ -67,11 +71,35 @@ public class Fichero {
 
                 //vamos leyendo cada columna y guardando los valores en una variable para luego crear los metabolitos
                 name = cellIterator.next().getStringCellValue();
-                formula = cellIterator.next().getStringCellValue();
+
+                //para algunas de las siguientes propiedades, hay algunas que están sin rellenar, en tal caso, se asigna un valor imposible
+                try {
+                    INCHI = cellIterator.next().getStringCellValue();
+                } catch (IllegalStateException ise) {
+                    INCHI = null;
+                }
+                try {
+                    RefHMDB = cellIterator.next().getStringCellValue();
+                } catch (IllegalStateException ise) {
+                    RefHMDB = null;
+                }
+                try {
+                    RefPubChem = (int) cellIterator.next().getNumericCellValue();
+                    if (RefPubChem == 0) {
+                        RefPubChem = null;
+                    }
+                } catch (IllegalStateException ise) {
+                    RefPubChem = null;
+                }
+                try {
+                    formula = cellIterator.next().getStringCellValue();
+                } catch (IllegalStateException ise) {
+                    formula = null;
+                }
+
                 M = cellIterator.next().getNumericCellValue();
                 m_z = cellIterator.next().getNumericCellValue();
 
-                //para las siguientes propiedades, hay algunas que están sin rellenar, en tal caso, se asigna un valor imposible
                 try {
                     MTcompnd = cellIterator.next().getNumericCellValue();   //este método devuelve un double, por lo tanto no hay que hacer ningín cast
                 } catch (IllegalStateException ise) {
@@ -102,6 +130,11 @@ public class Fichero {
                     RMTmes = null;
                 }
 
+                try {
+                    eff_mobility = cellIterator.next().getNumericCellValue();   //este método devuelve un double, por lo tanto no hay que hacer ningín cast
+                } catch (IllegalStateException ise) {
+                    eff_mobility = null;
+                }
                 //ahora leemos los fragmentos como String y luego con Split lo separamos en cada Double correspondiente
                 String celdaLeida;
                 String[] fragmentsLeidos;   //el método split devuelve un array de Strings
@@ -128,8 +161,9 @@ public class Fichero {
                     }
 
                 }
+
                 //vamos creando cada metabolito y lo añadimos a la lista
-                Metabolito m = new Metabolito(name, formula, M, m_z, MTcompnd, MTmets, RMTmets, MTmes, RMTmes, fragments);
+                Metabolito m = new Metabolito(name, INCHI, RefHMDB, RefPubChem, formula, M, m_z, MTcompnd, MTmets, RMTmets, MTmes, RMTmes, fragments, eff_mobility);
                 metabolitos.add(m);
 
             }
