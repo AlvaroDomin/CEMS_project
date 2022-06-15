@@ -30,3 +30,4 @@ CEMS_project/build/*
 
 # DO NOT UPLOAD TEMPORARY FILES FROM OFFICE
 ~*
+/CEMS_project/dist/

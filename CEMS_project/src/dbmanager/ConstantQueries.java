@@ -20,7 +20,8 @@ public class ConstantQueries {
     static final String INSERTFRAGMENTSFROMID = "Insert into fragments (ID_MET, M_Z, INTENSITY) VALUES (?, ?, ?)";
 
     //Nuevos:
-    static final String INSERT_CE_EFF_MOB = "INSERT INTO ce_eff_mob(ce_compound_id, ce_exp_prop_id, eff_mobility) VALUES(?, ?, ?)";
+    static final String INSERT_CE_EFF_MOB = "INSERT INTO ce_eff_mob(ce_compound_id, ce_exp_prop_id, cembio_id, eff_mobility) VALUES(?, ?, ?, ?)";
+    static Integer cembio_id = 100846;
     static final String INSERT_COMPOUNDS = "INSERT INTO compounds (compound_name, formula, mass) VALUES (?, ?, ?)";
     static final String INSERT_COMP_IDENT = "INSERT INTO compound_identifiers (compound_id, inchi, inchi_key, smiles) VALUES (?, ?, ?, ?)";
     static final String INSERT_COMP_HMDB = "INSERT INTO compounds_hmdb (hmdb_id, compound_id) VALUES (?, ?)";
@@ -37,7 +38,9 @@ public class ConstantQueries {
     public static final int CAPILLARY_LENGTH = 1000;
     public static final int BGE_COMPOUND_ID_METS = 180838;
     public static final int BGE_COMPOUND_ID_MES = 73414;
+    //public static final int BGE_COMPOUND_ID_METS = 3;
+    //public static final int BGE_COMPOUND_ID_MES = 4;
 
-    static final String INSERT_COMP_CE_PROD_ION = "INSERT INTO compound_ce_product_ion (ion_source_voltage, ce_product_ion_mz, ce_product_ion_intensity,  ce_product_ion_type, ce_eff_mob_id, compound_id_own) VALUES (?, ?, ?, 'fragment', ?, ?)";
+    static final String INSERT_COMP_CE_PROD_ION = "INSERT INTO compound_ce_product_ion (ion_source_voltage, ce_product_ion_mz, ce_product_ion_intensity, ce_transformation_type, ce_eff_mob_id, compound_id_own) VALUES (?, ?, ?, 'fragment', ?, ?)";
     public static final int ION_SOURCE_VOLTAGE = 200;
 }

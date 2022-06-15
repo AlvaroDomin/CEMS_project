@@ -5,6 +5,7 @@ use CEMS;
 drop table IF EXISTS compounds;
 drop table IF EXISTS compound_identifiers;
 drop table IF EXISTS compounds_hmdb;
+drop table IF EXISTS compounds_pc;
 drop table IF EXISTS ce_experimental_properties;
 drop table IF EXISTS ce_eff_mob;
 drop table IF EXISTS ce_experimental_properties_metadata;
@@ -62,7 +63,15 @@ CREATE TABLE compounds_hmdb (
   INDEX hmdb_id_index (hmdb_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-
+CREATE TABLE compounds_pc (
+  compound_id INT NOT NULL,
+  pc_id INT NOT NULL,
+  created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (compound_id) REFERENCES compounds(compound_id) on DELETE CASCADE,
+  CONSTRAINT pk_compounds_pc PRIMARY KEY (compound_id,pc_id),
+  INDEX pc_id_index (pc_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 create table ce_experimental_properties(
   ce_exp_prop_id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -92,6 +101,7 @@ create table ce_eff_mob(
   INDEX eff_mob_compound_id_index (ce_compound_id), 
   INDEX eff_mob_cembio_id_index (cembio_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 create table ce_experimental_properties_metadata(
   ce_ms_exp_prop_metadata_id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -137,3 +147,30 @@ create table compound_ce_product_ion (
   INDEX cepi_ce_eff_mob_id_id_index (ce_eff_mob_id),
   INDEX cepi_ion_source_voltage_index (ion_source_voltage)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+insert into ce_experimental_properties(buffer,temperature, ionization_mode, polarity) VALUES (1,20,1,1);
+insert into ce_experimental_properties(buffer,temperature, ionization_mode, polarity) VALUES (1,20,1,2);
+insert into ce_experimental_properties(buffer,temperature, ionization_mode, polarity) VALUES (1,20,2,1);
+insert into ce_experimental_properties(buffer,temperature, ionization_mode, polarity) VALUES (1,20,2,2);
+insert into ce_experimental_properties(buffer,temperature, ionization_mode, polarity) VALUES (1,25,1,1);
+insert into ce_experimental_properties(buffer,temperature, ionization_mode, polarity) VALUES (1,25,1,2);
+insert into ce_experimental_properties(buffer,temperature, ionization_mode, polarity) VALUES (1,25,2,1);
+insert into ce_experimental_properties(buffer,temperature, ionization_mode, polarity) VALUES (1,25,2,2);
+insert into ce_experimental_properties(buffer,temperature, ionization_mode, polarity) VALUES (2,20,1,1);
+insert into ce_experimental_properties(buffer,temperature, ionization_mode, polarity) VALUES (2,20,1,2);
+insert into ce_experimental_properties(buffer,temperature, ionization_mode, polarity) VALUES (2,20,2,1);
+insert into ce_experimental_properties(buffer,temperature, ionization_mode, polarity) VALUES (2,20,2,2);
+insert into ce_experimental_properties(buffer,temperature, ionization_mode, polarity) VALUES (2,25,1,1);
+insert into ce_experimental_properties(buffer,temperature, ionization_mode, polarity) VALUES (2,25,1,2);
+insert into ce_experimental_properties(buffer,temperature, ionization_mode, polarity) VALUES (2,25,2,1);
+insert into ce_experimental_properties(buffer,temperature, ionization_mode, polarity) VALUES (2,25,2,2);
+
+INSERT IGNORE INTO ce_eff_mob(ce_compound_id, ce_exp_prop_id, cembio_id, eff_mobility) VALUES(180838, 1, 123, 774.7394);
+INSERT IGNORE INTO ce_eff_mob(ce_compound_id, ce_exp_prop_id, cembio_id, eff_mobility) VALUES(73414, 1, 237, 0);
+INSERT IGNORE INTO ce_experimental_properties_metadata(ce_eff_mob_id, experimental_mz, ce_identification_level, ce_sample_type, capillary_voltage, capillary_length, bge_compound_id, absolute_MT, relative_MT, commercial) VALUES(1, null, 1, 1, 30, 1000, 180838, 14.242, 1, 'SIGMA-ALDRICH');
+INSERT IGNORE INTO ce_experimental_properties_metadata(ce_eff_mob_id, experimental_mz, ce_identification_level, ce_sample_type, capillary_voltage, capillary_length, bge_compound_id, absolute_MT, relative_MT, commercial) VALUES(1, null, 1, 1, 30, 1000, 73414, null, 0.66, 'SIGMA-ALDRICH');
+INSERT IGNORE INTO ce_experimental_properties_metadata(ce_eff_mob_id, experimental_mz, ce_identification_level, ce_sample_type, capillary_voltage, capillary_length, bge_compound_id, absolute_MT, relative_MT, commercial) VALUES(2, 152.071, 1, 1, 30, 1000, 180838, 20.8669, 1.48740118753163, 'SIGMA-ALDRICH');
+INSERT IGNORE INTO ce_experimental_properties_metadata(ce_eff_mob_id, experimental_mz, ce_identification_level, ce_sample_type, capillary_voltage, capillary_length, bge_compound_id, absolute_MT, relative_MT, commercial) VALUES(2, 152.071, 1, 1, 30, 1000, 73414, null, 1, 'SIGMA-ALDRICH');
+
+

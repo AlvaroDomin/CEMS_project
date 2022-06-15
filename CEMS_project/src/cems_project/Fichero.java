@@ -80,6 +80,9 @@ public class Fichero {
                 }
                 try {
                     RefHMDB = cellIterator.next().getStringCellValue();
+                    if (RefHMDB == "") {
+                        RefHMDB = null;
+                    }
                 } catch (IllegalStateException ise) {
                     RefHMDB = null;
                 }

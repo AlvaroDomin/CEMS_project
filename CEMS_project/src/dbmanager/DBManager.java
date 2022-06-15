@@ -10,6 +10,7 @@ import cems_project.Metabolito;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import exceptions.WrongRequestException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Connection;
@@ -64,7 +65,8 @@ public class DBManager {
         try {
             PreparedStatement ps = this.connection.prepareStatement(sql);
             ps.setString(1, m.getINCHI());
-            int compound_id = getInt(sql);
+            int compound_id = getInt(ps);
+            System.out.println("\ncompound_id: " + compound_id);
 
             if (compound_id == 0) {
                 //tenemos que insertar toda la información correspondiente:
@@ -76,7 +78,9 @@ public class DBManager {
                 insertCompoundIdentifiers(compound_id, m.getINCHI());
             }
 
-            //metemos las referencias a la estructura OPTIONALLY, CHECK IF THEY ALREADY EXISTS
+            // metemos las referencias a la estructura OPTIONALLY, CHECK IF THEY ALREADY EXISTS
+            //if they do not exist, we do not have to insert anything
+            //puede haber más de una referencia ya que la clave primaria está compuesta por 2 valores
             insertHMDB(compound_id, m.getRefHMDB());
             insertPC(compound_id, m.getRefPubChem());
 
@@ -88,19 +92,21 @@ public class DBManager {
             ps.setInt(2, ConstantQueries.TEMPERATURE);
             ps.setInt(3, ConstantQueries.IONIZATION_MODE);
             ps.setInt(4, ConstantQueries.POLARITY);
-            int ce_ex_prop_id = getInt(sql);
+            int ce_ex_prop_id = getInt(ps);
+            //System.out.println("ce_ex_prop_id: " + ce_ex_prop_id);
 
             // INSERT EFF MOB
-            int ce_eff_mob_id = insertCeEffMob(compound_id, ce_ex_prop_id, m);
+            int ce_eff_mob_id = insertCeEffMob(compound_id, ce_ex_prop_id, m);  //java.sql.SQLIntegrityConstraintViolationException: Duplicate entry
+            //System.out.println("ce_eff_mob_id" + ce_eff_mob_id);
 
-            // INSERT METADATA WITH METH SULFONE
-            insertCeExpPropMet(ce_eff_mob_id, m);
+            // INSERT METADATA WITH METH SULFONE AND PARACETAMOL
+            insertCeExpPropMet(ce_eff_mob_id, m);       //java.sql.SQLIntegrityConstraintViolationException: Cannot add or update a child row
 
             // INSERT FRAGMENTS
             //insertamos los fragmentos
             List<Fragment> fragments = m.getFragments();
             //por cada fragment de la lista
-            insertCompCeProdIon(compound_id, ce_eff_mob_id, fragments);
+            insertCompCeProdIon(compound_id, ce_eff_mob_id, fragments);     //java.sql.SQLIntegrityConstraintViolationException: Cannot add or update a child row
 
         } catch (SQLException ex) {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
@@ -114,7 +120,7 @@ public class DBManager {
         String sql = ConstantQueries.INSERT_COMPOUNDS;
         //"INSERT INTO compounds (compound_name, formula, mass) VALUES (?, ?, ?)"
         try {
-            PreparedStatement ps = this.connection.prepareStatement(sql);
+            PreparedStatement ps = this.connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             ps.setString(1, m.getCompound());
             ps.setString(2, m.getFormula());
             ps.setDouble(3, m.getM());
@@ -124,7 +130,7 @@ public class DBManager {
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {
                     compound_id = rs.getInt(1);
-                    System.out.println("CompoundId: " + compound_id);
+                    //System.out.println("CompoundId: " + compound_id);
                 }
                 rs.close();
             } catch (SQLException ex) {
@@ -144,8 +150,8 @@ public class DBManager {
             PreparedStatement ps = this.connection.prepareStatement(sql);
             ps.setInt(1, compound_id);
             ps.setString(2, inchi);
-            String key = getINCHIKeyFromInchi(inchi);
-            String smiles = getSMILESFromInchi(inchi);
+            String key = ChemSpiderREST.getINCHIKeyFromInchi(inchi);
+            String smiles = ChemSpiderREST.getSMILESFromInchi(inchi);
             ps.setString(3, key);
             ps.setString(4, smiles);
             ps.executeUpdate();
@@ -153,9 +159,9 @@ public class DBManager {
         } catch (SQLException ex) {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ioe) {
-
+            System.out.println("ex: " + ioe);
         } catch (WrongRequestException wre) {
-
+            System.out.println(wre);
         }
     }
 
@@ -163,54 +169,76 @@ public class DBManager {
         String sql = ConstantQueries.INSERT_COMP_HMDB;
         //"INSERT INTO compounds_hmdb (hmdb_id, compound_id) VALUES (?, ?)"
         try {
-            PreparedStatement ps = this.connection.prepareStatement(sql);
-            ps.setInt(1, compound_id);
-            ps.setString(2, HMDB);
-            ps.executeUpdate();
-
+            if (HMDB != null) {
+                //we just have to add the reference when it exists
+                PreparedStatement ps = this.connection.prepareStatement(sql);
+                ps.setString(1, HMDB);
+                ps.setInt(2, compound_id);
+                ps.executeUpdate();
+            }
         } catch (SQLException ex) {
-            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+            if (ex.getErrorCode() == 1062) { //code de Duplicate Entry
+                System.out.println("No se inserta la referencia HMDB porque ya estaba metida.");
+            }
         }
     }
 
-    public void insertPC(int compound_id, int pc) {
+    public void insertPC(int compound_id, Integer pc) {
         String sql = ConstantQueries.INSERT_COMP_PC;
         //"INSERT INTO compounds_pc (pc_id, compound_id) VALUES (?, ?)"
-        try {
-            PreparedStatement ps = this.connection.prepareStatement(sql);
-            ps.setInt(1, compound_id);
-            ps.setInt(2, pc);
-            ps.executeUpdate();
 
+        try {
+
+            if (pc != null) {
+                PreparedStatement ps = this.connection.prepareStatement(sql);
+                ps.setInt(1, pc);
+
+                ps.setInt(2, compound_id);
+                ps.executeUpdate();
+            }
         } catch (SQLException ex) {
-            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+            if (ex.getErrorCode() == 1062) { //code de Duplicate Entry
+                System.out.println("No se inserta la referencia PubChem porque ya estaba metida.");
+            }
         }
     }
 
     public int insertCeEffMob(int compound_id, int ce_ex_prop_id, Metabolito m) {
         //returns el id que se acaba de insertar (ce_eff_mob_id)
         String sql = ConstantQueries.INSERT_CE_EFF_MOB;
-        //"INSERT INTO ce_eff_mob(ce_compound_id, ce_exp_prop_id, eff_mobility) VALUES(?, ?, ?)"
+        //INSERT INTO ce_eff_mob(ce_compound_id, ce_exp_prop_id, cembio_id, eff_mobility) VALUES(?, ?, ?, ?)"
         int ce_eff_mob_id = 0;
         try {
-            PreparedStatement ps = this.connection.prepareStatement(sql);
+            PreparedStatement ps = this.connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             ps.setInt(1, compound_id);
             ps.setInt(2, ce_ex_prop_id);
-            ps.setDouble(3, m.getEff_mobility());
+            ps.setDouble(3, ConstantQueries.cembio_id);
+            ConstantQueries.cembio_id++;
+            if (m.getEff_mobility() == null) {
+                ps.setNull(4, java.sql.Types.NULL);
+            } else {
+                ps.setDouble(4, m.getEff_mobility());   //CAN BE NULL
+            }
             ps.executeUpdate();
+            System.out.println("Insertamos la EffectiveMobility");
 
             //ahora tenemos que obtener el ce_eff_mob_id que se acaba de insertar
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {
                     ce_eff_mob_id = rs.getInt(1);
-                    System.out.println("Last ce_eff_mob_id: " + ce_eff_mob_id);       //este id es el que se manda a el insert de los fragments
+                    // ceSystem.out.println("Last ce_eff_mob_id: " + ce_eff_mob_id);       //este id es el que se manda a el insert de los fragments
                 }
                 rs.close();
             } catch (SQLException ex) {
                 Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
             }
         } catch (SQLException ex) {
-            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+            if (ex.getErrorCode() == 1062) { //code de Duplicate Entry
+                System.out.println("No se inserta la información relativa a Effective Mobility porque ya estaba metida.");
+            }
         }
         return ce_eff_mob_id;
     }
@@ -221,14 +249,26 @@ public class DBManager {
         //"INSERT INTO ce_experimental_properties_metadata(ce_eff_mob_id, experimental_mz, capillary_voltage, capillary_length, bge_compound_id, absolute_MT, relative_MT) VALUES (?, ?, ?, ?, ?, ?, ?)"
         try {
             PreparedStatement ps = this.connection.prepareStatement(sql);
+
+            //cuidado con los valores que son null
             //insertamos lo referente a la metionina sulfona
             ps.setInt(1, ce_eff_mob_id);
             ps.setDouble(2, m.getM_Z());
             ps.setInt(3, ConstantQueries.CAPILLARY_VOLTAGE);
             ps.setInt(4, ConstantQueries.CAPILLARY_LENGTH);
             ps.setInt(5, ConstantQueries.BGE_COMPOUND_ID_METS);
-            ps.setDouble(6, m.getMT_Mets());
-            ps.setDouble(7, m.getRMT_Mets());
+
+            if (m.getMT_Mets() == null) {
+                ps.setNull(6, java.sql.Types.NULL);
+            } else {
+                ps.setDouble(6, m.getMT_Mets());
+            }
+            if (m.getRMT_Mets() == null) {
+                ps.setNull(7, java.sql.Types.NULL);
+            } else {
+                ps.setDouble(7, m.getRMT_Mets());
+            }
+
             ps.executeUpdate();
 
             //insertamos lo referente al paracetamol
@@ -237,10 +277,21 @@ public class DBManager {
             ps.setInt(3, ConstantQueries.CAPILLARY_VOLTAGE);
             ps.setInt(4, ConstantQueries.CAPILLARY_LENGTH);
             ps.setInt(5, ConstantQueries.BGE_COMPOUND_ID_MES);
-            ps.setDouble(6, m.getMT_Mes());
-            ps.setDouble(7, m.getRMT_Mes());
+
+            if (m.getMT_Mes() == null) {
+                ps.setNull(6, java.sql.Types.NULL);
+            } else {
+                ps.setDouble(6, m.getMT_Mes());
+            }
+            if (m.getMT_Mes() == null) {
+                ps.setNull(7, java.sql.Types.NULL);
+            } else {
+                ps.setDouble(7, m.getRMT_Mes());
+            }
+
             ps.executeUpdate();
 
+            System.out.println("Insertamos las ce_experimental_properties");
         } catch (SQLException ex) {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -260,19 +311,22 @@ public class DBManager {
                 ps.setDouble(2, fragments.get(i).getM_Z());
 
                 intensity = fragments.get(i).getIntensity();
-                if (intensity == null) {
 
+                if (intensity == null) {
                     ps.setNull(3, java.sql.Types.NULL);
                 } else {
                     ps.setDouble(3, intensity);
                 }
+
                 ps.setInt(4, ce_eff_mob_id);
                 ps.setInt(5, compound_id);
                 ps.executeUpdate();
+                System.out.println("Insertamos los fragments");
             }
 
         } catch (SQLException ex) {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("\n");
         } catch (NullPointerException npe) {
             //System.out.println("El compuesto con ID " + id + " No ha insertado el fragmento con m/z = " + m_z + " porque es null");
         }
@@ -289,8 +343,28 @@ public class DBManager {
     public int getInt(String query) {
         int id = 0;
         // Be aware that the connection should be initialized (calling the method connectToDB)
+
         try {
-            ResultSet rs = statement.executeQuery(query);   //es un iterador
+            PreparedStatement ps = this.connection.prepareStatement(query);
+            ResultSet rs = ps.executeQuery();   //es un iterador
+
+            if (rs.next()) {
+                id = rs.getInt(1);  //este uno es que accede a la primera columna de la query que yo le paso
+            }
+            rs.close();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return id;
+    }
+
+    public int getInt(PreparedStatement ps) {
+        int id = 0;
+        // Be aware that the connection should be initialized (calling the method connectToDB)
+
+        try {
+            ResultSet rs = ps.executeQuery();   //es un iterador
 
             if (rs.next()) {
                 id = rs.getInt(1);  //este uno es que accede a la primera columna de la query que yo le paso
@@ -372,7 +446,7 @@ public class DBManager {
 
             // Select de los fragmentos. Creando un metodo getFragmentos, solo reciba el parámetro int ID
             List<Fragment> fragments = getFragments(id);
-            Metabolito m1 = new Metabolito(Compd_name, formula, m_mass, m_z, mt_compnd, mt_mets, rmt_mets, mt_mes, rmt_mes, fragments);
+            Metabolito m1 = new Metabolito(Compd_name, null, null, null, formula, m_mass, m_z, mt_compnd, mt_mets, rmt_mets, mt_mes, rmt_mes, fragments, null);
             return m1;
         } catch (SQLException ex) {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
@@ -641,8 +715,9 @@ public class DBManager {
             db.connectToDB("jdbc:mysql://localhost/" + dbName + "?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true", dbUser, dbPassword);
 
             //GET INT
-            int id = db.getInt("Select ID from metabolites where id = 3");
+            int id = db.getInt("select compound_id from compounds where formula = \"C5H11NO4\"");
             System.out.println(id);
+
             //GET STRING
             //String word = db.getString("Select \"asd\"");
             //System.out.println(word);
@@ -672,7 +747,6 @@ public class DBManager {
 //            Metabolito metabolito = new Metabolito("Fructose 1,6 Biphosphate", "C6H14O12P2", 339.9960, 338.9887, 9.739, 27.135, 0.36, 20.187, 0.48, fragments);
 //            db.insertMetabolito(metabolito);
             //db.insertFragments(1, fragments);
-
         } catch (FileNotFoundException ex) {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
 

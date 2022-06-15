@@ -67,6 +67,15 @@ public class Ejecutable {
 
         }
     }*/
+
+    //MAIN PARA LEER DE FICHERO
+    /*public static void main(String[] args) {
+        //imprimimos la lista de metabolitos que tenemos
+        List<Metabolito> metabolitos = Fichero.leerFichero();
+        for (Metabolito m : metabolitos) {
+            System.out.println(m);
+        }
+    }*/
  /*public static void main(String[] args) {
         //imprimimos la lista de metabolitos que tenemos
         List<Metabolito> metabolitos = Fichero.leerFichero();
