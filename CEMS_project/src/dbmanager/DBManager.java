@@ -214,8 +214,19 @@ public class DBManager {
             PreparedStatement ps = this.connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             ps.setInt(1, compound_id);
             ps.setInt(2, ce_ex_prop_id);
-            ps.setDouble(3, ConstantQueries.cembio_id);
-            ConstantQueries.cembio_id++;
+
+            //tenemos que hacer un get del cembio_id
+            Integer cembio_id = null;
+            String query = "Select MAX(cembio_id) from ce_eff_mob";
+            ResultSet rset = statement.executeQuery(query);
+            if (rset.next()) {
+                cembio_id = rset.getInt(1);
+                //System.out.println(cembio_id);
+            }
+            rset.close();
+            cembio_id++;    //el id insertado es el siguiente al ultimo que se ha leído
+            ps.setDouble(3, cembio_id);
+
             if (m.getEff_mobility() == null) {
                 ps.setNull(4, java.sql.Types.NULL);
             } else {

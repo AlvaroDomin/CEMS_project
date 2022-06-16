@@ -21,7 +21,6 @@ public class ConstantQueries {
 
     //Nuevos:
     static final String INSERT_CE_EFF_MOB = "INSERT INTO ce_eff_mob(ce_compound_id, ce_exp_prop_id, cembio_id, eff_mobility) VALUES(?, ?, ?, ?)";
-    static Integer cembio_id = 100846;
     static final String INSERT_COMPOUNDS = "INSERT INTO compounds (compound_name, formula, mass) VALUES (?, ?, ?)";
     static final String INSERT_COMP_IDENT = "INSERT INTO compound_identifiers (compound_id, inchi, inchi_key, smiles) VALUES (?, ?, ?, ?)";
     static final String INSERT_COMP_HMDB = "INSERT INTO compounds_hmdb (hmdb_id, compound_id) VALUES (?, ?)";
