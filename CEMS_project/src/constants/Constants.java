@@ -11,7 +11,8 @@ package constants;
  */
 public class Constants {
 
-    public static String CEFilePath = "C:/Users/maria/Documents/CEU/beca/datos/Tabla_patrones_CEMSnegnegSinProblemas.xlsx";
+    // public static String CEFilePath = "C:/Users/maria/Documents/CEU/beca/datos/Tabla_patrones_CEMSnegnegSinProblemas.xlsx";
+    public static String CEFilePath = "C:\\Users\\alberto.gildelafuent\\Desktop\\alberto\\repos_git\\CEMS_reader\\CEMS_project\\resources\\CE\\Tabla_patrones_CEMSnegnegSinProblemas.xlsx";
 
     public static final String PUBCHEM_ENDPOINT_COMPOUND = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/";
     public static final String PUBCHEM_ENDPOINT_COMPOUND_NAME = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/";

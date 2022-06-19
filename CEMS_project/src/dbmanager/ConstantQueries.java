@@ -27,7 +27,7 @@ public class ConstantQueries {
     static final String INSERT_COMP_PC = "INSERT INTO compounds_pc (pc_id, compound_id) VALUES (?, ?)";
 
     static final String SELECT_CE_EXP_PROP = "SELECT ce_exp_prop_id FROM ce_experimental_properties WHERE buffer = ? AND temperature = ? AND ionization_mode = ? AND polarity = ?";
-    public static final int BUFFER = 1;
+    public static final int BUFFER = 3;
     public static final int TEMPERATURE = 20;
     public static final int IONIZATION_MODE = 2;
     public static final int POLARITY = 2;
