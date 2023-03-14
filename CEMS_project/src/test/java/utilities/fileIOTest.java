@@ -5,14 +5,17 @@
  */
 package utilities;
 
-import static org.junit.Assert.*;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  *
  * @author alberto.gildelafuent
  */
 public class fileIOTest {
+
 
     public fileIOTest() {
     }
@@ -23,13 +26,13 @@ public class fileIOTest {
     @Test
     public void testReadStringFromFile() throws Exception {
 
-        String filename = "resources/connectionData.pass";
-
+        String filename = "src/main/resources/connectionData.pass";
+        System.out.println(System.getProperty("user.dir"));
         System.out.println("readStringFromFile");
         String expResult = "{\n"
                 + "	\"db_name\" : \"CEMS\",\n"
                 + "	\"db_user\" : \"root\",\n"
-                + "	\"db_password\" : \"maria\"\n"
+                + "	\"db_password\" : \"password\"\n"
                 + "}";
         String result = fileIO.readStringFromFile(filename);
         assertEquals(expResult, result);
