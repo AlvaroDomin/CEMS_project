@@ -31,7 +31,7 @@ public class Ejecutable {
 
         //conectamos con la database
         DBManager db = new DBManager();
-        String filename = "resources/connectionData.pass";
+        String filename = "src/main/resources/connectionData.pass";
         try {
             Gson gson = new Gson();
             String readJSONStr = readStringFromFile(filename);
@@ -40,14 +40,14 @@ public class Ejecutable {
             String dbName = jsonObj.get("db_name").getAsString();
             String dbUser = jsonObj.get("db_user").getAsString();
             String dbPassword = jsonObj.get("db_password").getAsString();
-
+/*
             db.connectToDB("jdbc:mysql://localhost/" + dbName + "?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true", dbUser, dbPassword);
 
             //insertamos los metabolitos leidos
             for (Metabolito m : metabolitos) {
                 db.insertMetabolite(m);
             }
-
+*/
         } catch (FileNotFoundException ex) {
             Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ioe) {
