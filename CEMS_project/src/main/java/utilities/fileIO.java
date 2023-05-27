@@ -36,7 +36,7 @@ public class fileIO {
 
     public static void main(String[] args) {
         try {
-            String filename = "resources/connectionData.pass";
+            String filename = "src/main/resources/connectionData.pass";
 
             String result = fileIO.readStringFromFile(filename);
             System.out.println(result);

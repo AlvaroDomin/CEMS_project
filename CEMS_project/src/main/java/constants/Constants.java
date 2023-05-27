@@ -12,6 +12,7 @@ package constants;
 public class Constants {
 
     // public static String CEFilePath = "C:/Users/maria/Documents/CEU/beca/datos/Tabla_patrones_CEMSnegnegSinProblemas.xlsx";
+<<<<<<< HEAD:CEMS_project/src/constants/Constants.java
     public static String CEFilePath = "C:\\Users\\alberto.gildelafuent\\Desktop\\alberto\\repos_git\\CEMS_reader\\CEMS_project\\resources\\CE\\Tabla_patrones_CEMSnegnegSinProblemas.xlsx";
     public static String CEMBIOLIST = "C:\\Users\\maria\\OneDrive - Fundación Universitaria San Pablo CEU\\CEU\\Beca\\Tercero\\Listas\\CEMBIOLISTReducida.xlsx";
     //CEMBIOLIST1.xlsx
@@ -26,6 +27,9 @@ public class Constants {
     //COMERCIALLIST1.xlsx
     //InchisCOMERCIAL.xlsx
     public static String RUTA_GUARDAR = "C:\\Users\\maria\\OneDrive - Fundación Universitaria San Pablo CEU\\CEU\\Beca\\Tercero\\Listas\\";
+=======
+    public static String CEFilePath = "src/main/resources/input_excels/Tabla_patrones_CEMSnegnegSinProblemas.xlsx";
+>>>>>>> 54b4dddb5effc8a2311644451e97f6abca02dca4:CEMS_project/src/main/java/constants/Constants.java
 
     public static final String PUBCHEM_ENDPOINT_COMPOUND = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/";
     public static final String PUBCHEM_ENDPOINT_COMPOUND_NAME = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/";

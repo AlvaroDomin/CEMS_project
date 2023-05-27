@@ -40,8 +40,35 @@ public class Ejecutable {
 //            System.out.println(c);
 //        }
 
+<<<<<<< HEAD:CEMS_project/src/cems_project/Ejecutable.java
         //escribimos todo en el excel
         Fichero.escribirCEMBIOLIST(padres, comps);
+=======
+        //conectamos con la database
+        DBManager db = new DBManager();
+        String filename = "src/main/resources/connectionData.pass";
+        try {
+            Gson gson = new Gson();
+            String readJSONStr = readStringFromFile(filename);
+            JsonElement element = gson.fromJson(readJSONStr, JsonElement.class);
+            JsonObject jsonObj = element.getAsJsonObject();
+            String dbName = jsonObj.get("db_name").getAsString();
+            String dbUser = jsonObj.get("db_user").getAsString();
+            String dbPassword = jsonObj.get("db_password").getAsString();
+/*
+            db.connectToDB("jdbc:mysql://localhost/" + dbName + "?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true", dbUser, dbPassword);
+
+            //insertamos los metabolitos leidos
+            for (Metabolito m : metabolitos) {
+                db.insertMetabolite(m);
+            }
+*/
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ioe) {
+            Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ioe);
+        }
+>>>>>>> 54b4dddb5effc8a2311644451e97f6abca02dca4:CEMS_project/src/main/java/cems_project/Ejecutable.java
     }
 
     public static void ComercialList() {
