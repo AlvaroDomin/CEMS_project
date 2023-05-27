@@ -3,14 +3,13 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/maria/Documents/CEU/beca/repos_git/CEMS_reader/CEMS_project/src/cems_project/Metabolito.java</file>
-            <file>file:/C:/Users/maria/Documents/CEU/beca/repos_git/CEMS_reader/CEMS_project/src/cems_project/Ejecutable.java</file>
-            <file>file:/C:/Users/maria/Documents/CEU/beca/repos_git/CEMS_reader/CEMS_project/src/cems_project/Fichero.java</file>
-            <file>file:/C:/Users/maria/Documents/CEU/beca/repos_git/CEMS_reader/CEMS_project/src/constants/Constants.java</file>
-            <file>file:/C:/Users/maria/Documents/CEU/beca/repos_git/CEMS_reader/CEMS_project/src/dbmanager/DBManager.java</file>
-            <file>file:/C:/Users/maria/Documents/CEU/beca/repos_git/CEMS_reader/CEMS_project/src/cems_project/Fragment.java</file>
-            <file>file:/C:/Users/maria/Documents/CEU/beca/repos_git/CEMS_reader/CEMS_project/src/dbmanager/ChemSpiderREST.java</file>
-            <file>file:/C:/Users/maria/Documents/CEU/beca/repos_git/CEMS_reader/CEMS_project/src/dbmanager/ConstantQueries.java</file>
+            <file>file:/C:/Users/maria/Documents/CEU/beca/Segundo/repos_git/CEMS_reader/CEMS_project/src/cems_project/Ejecutable.java</file>
+            <file>file:/C:/Users/maria/Documents/CEU/beca/Segundo/repos_git/CEMS_reader/CEMS_project/src/constants/Constants.java</file>
+            <file>file:/C:/Users/maria/Documents/CEU/beca/Segundo/repos_git/CEMS_reader/CEMS_project/src/cems_project/Fichero.java</file>
+            <file>file:/C:/Users/maria/Documents/CEU/beca/Segundo/repos_git/CEMS_reader/CEMS_project/src/utilities/Regex.java</file>
+            <file>file:/C:/Users/maria/Documents/CEU/beca/Segundo/repos_git/CEMS_reader/CEMS_project/src/dbmanager/PubchemRest.java</file>
+            <file>file:/C:/Users/maria/Documents/CEU/beca/Segundo/repos_git/CEMS_reader/CEMS_project/src/cems_project/Compound.java</file>
+            <file>file:/C:/Users/maria/Documents/CEU/beca/Segundo/repos_git/CEMS_reader/CEMS_project/src/cems_project/Identifier.java</file>
         </group>
     </open-files>
 </project-private>
