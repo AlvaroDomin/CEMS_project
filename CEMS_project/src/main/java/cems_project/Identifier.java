@@ -1,4 +1,4 @@
-<<<<<<< HEAD:CEMS_project/src/cems_project/Identifier.java
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -13,6 +13,11 @@ import java.util.Objects;
  * @author maria
  */
 public class Identifier {
+
+    public static void main(String[] args) {
+        Identifier id1 = new Identifier("", "", "");
+        System.out.println(id1);
+    }
 
     private final String inchi;
     private final String inchi_key;
@@ -46,6 +51,10 @@ public class Identifier {
         this(inchi, inchi_key, smiles, pc_id, null, null);
     }
 
+    public Identifier(String inchi, String inchi_key, String smiles, Integer pc_id, String cembio_id) {
+        this(inchi, inchi_key, smiles, pc_id, null, cembio_id);
+    }
+
     public Identifier(String inchi, Integer pc_id, String hmdb_id, String cembio_id) {
         this(inchi, null, null, pc_id, hmdb_id, cembio_id);
     }
@@ -72,30 +81,19 @@ public class Identifier {
 
     public String getCembio_id() {
         return cembio_id;
-=======
-package cems_project;
-
-
-import java.util.Objects;
-
-/**
- * @author Alberto Gil-de-la-Fuente
- */
-public record Identifier(String inchi, String inchi_key, String smiles) {
-
-    public static void main(String[] args) {
-        Identifier id1 = new Identifier("", "", "");
-        System.out.println(id1);
->>>>>>> 54b4dddb5effc8a2311644451e97f6abca02dca4:CEMS_project/src/main/java/cems_project/Identifier.java
     }
+
 
     @Override
     public String toString() {
-<<<<<<< HEAD:CEMS_project/src/cems_project/Identifier.java
-        return "\n\t\tinchi=" + inchi + "\n\t\tinchi_key=" + inchi_key + "\n\t\tsmiles=" + smiles + "\n\t\tpc_id=" + pc_id + "\n\t\thmdb_id=" + hmdb_id + "\n\t\tcembio_id=" + cembio_id + '}';
-=======
-        return "Identifier{" + "inchi=" + inchi + ", inchi_key=" + inchi_key + ", smiles=" + smiles + '}';
->>>>>>> 54b4dddb5effc8a2311644451e97f6abca02dca4:CEMS_project/src/main/java/cems_project/Identifier.java
+        return "Identifier{" +
+                "inchi='" + inchi + '\'' +
+                ", inchi_key='" + inchi_key + '\'' +
+                ", smiles='" + smiles + '\'' +
+                ", pc_id=" + pc_id +
+                ", hmdb_id='" + hmdb_id + '\'' +
+                ", cembio_id='" + cembio_id + '\'' +
+                '}';
     }
 
     @Override
@@ -122,8 +120,5 @@ public record Identifier(String inchi, String inchi_key, String smiles) {
         }
         return true;
     }
-<<<<<<< HEAD:CEMS_project/src/cems_project/Identifier.java
 
-=======
->>>>>>> 54b4dddb5effc8a2311644451e97f6abca02dca4:CEMS_project/src/main/java/cems_project/Identifier.java
 }

@@ -34,7 +34,7 @@ public class fileIOTest {
                 + "	\"db_user\" : \"root\",\n"
                 + "	\"db_password\" : \"password\"\n"
                 + "}";
-        String result = fileIO.readStringFromFile(filename);
+        String result = FileIO.readStringFromFile(filename);
         assertEquals(expResult, result);
     }
 

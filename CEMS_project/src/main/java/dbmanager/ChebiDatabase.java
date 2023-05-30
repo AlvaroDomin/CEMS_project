@@ -37,15 +37,11 @@ public abstract class ChebiDatabase {
     static ChebiWebServiceClient client = new ChebiWebServiceClient();
 
     public static String getInChIFromChebID(int chebId) throws ChebiWebServiceFault_Exception {
-        try {
 
             Entity entity;
             entity = client.getCompleteEntity("CHEBI:" + Integer.toString(chebId));
             return entity.getInchi();
-        } catch (ChebiWebServiceFault_Exception ex) {
-            Logger.getLogger(ChebiDatabase.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
-        }
+
     }
 
     public static Identifier getIdentfiersFromChebiId(int chebId) {

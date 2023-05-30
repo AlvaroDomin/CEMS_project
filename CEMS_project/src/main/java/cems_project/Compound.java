@@ -31,10 +31,12 @@ public class Compound {
     private final Integer compound_type;
     private final Integer compound_status;
     private final Double logP;
-    private final Identifier identifiers;
+    private final Identifier identifiersOwn;
+    private final Identifier identifiersParent;
+
 
     public Compound(Integer compound_id, String name, String casId, String formula, Double mass, Integer compound_status, Integer compound_type, Double logP,
-            Identifier identifiers) {
+            Identifier identifiersOwn, Identifier identifiersParent) {
         this.compound_id = compound_id;
         this.name = name;
         this.casId = casId;
@@ -42,13 +44,18 @@ public class Compound {
         this.mass = mass;
         this.compound_status = compound_status;
         this.logP = logP;
-        this.identifiers = identifiers;
+        this.identifiersOwn = identifiersOwn;
+        this.identifiersParent = identifiersParent;
 //        int[] charges = PatternFinder.getChargeFromSmiles(identifiers.getSmiles());
 //        this.charge_type = charges[0];
 //        this.charge_number = charges[1];
 //        this.formula_type = PatternFinder.getTypeFromFormula(formula);
 //        this.formula_type_int = Utilities.getIntChemAlphabet(formula_type);
         this.compound_type = compound_type;
+    }
+    public Compound(Integer compound_id, String name, String casId, String formula, Double mass, Integer compound_status, Integer compound_type, Double logP,
+                    Identifier identifiersOwn) {
+        this(compound_id,name,casId,formula,mass,compound_status,compound_type,logP,identifiersOwn,null);
     }
 
     public Compound(String name) {
@@ -130,9 +137,14 @@ public class Compound {
         return logP;
     }
 
-    public Identifier getIdentifiers() {
-        return identifiers;
+    public Identifier getIdentifiersOwn() {
+        return identifiersOwn;
     }
+
+    public Identifier getIdentifiersParent() {
+        return this.identifiersParent;
+    }
+
 
     @Override
     public int hashCode() {
@@ -156,7 +168,7 @@ public class Compound {
         if (!Objects.equals(this.compound_id, other.compound_id)) {
             return false;
         }
-        if (!Objects.equals(this.identifiers, other.identifiers)) {
+        if (!Objects.equals(this.identifiersOwn, other.identifiersOwn)) {
             return false;
         }
         return true;
@@ -164,11 +176,16 @@ public class Compound {
 
     @Override
     public String toString() {
-        return "Compound{" + "\n\tcompound_id=" + compound_id + "\n\tname=" + name + "\n\tcasId=" + casId + "\n\tformula="
-                + formula + "\n\tmass=" + mass + /*", charge_type=" + charge_type + ", charge_number=" + charge_number +
-                ", formula_type=" + formula_type + ", formula_type_int=" + formula_type_int +*/ "\n\tcompound_status=" + compound_status
-                + "\n\tlogP=" + logP + "\n\tidentifiers=" + identifiers + "}\n";
-
+        return "Compound{" +
+                "compound_id=" + compound_id +
+                ", name='" + name + '\'' +
+                ", casId='" + casId + '\'' +
+                ", formula='" + formula + '\'' +
+                ", mass=" + mass +
+                ", compound_type=" + compound_type +
+                ", compound_status=" + compound_status +
+                ", logP=" + logP +
+                ", identifiers=" + identifiersOwn +
+                '}';
     }
-
 }

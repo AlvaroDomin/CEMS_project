@@ -37,7 +37,8 @@ public class ChemSpiderREST {
                     bodyForm(Form.form().add("inchi", inchi).build())
                     .execute().returnContent();
             String responseString = content.asString();
-            String newLine = System.getProperty("line.separator");
+            // String newLine = System.getProperty("line.separator");
+            String newLine = "\r\n";
             String htmlToRemove1 = "(.)*" + newLine;
             String htmlToRemove2 = "<string xmlns=\"http://www.chemspider.com/\">";
             String htmlToRemoveEnd = "</string>";
@@ -158,11 +159,11 @@ public class ChemSpiderREST {
         request.addHeader("Connection", "keep-alive");
 
         Response response = request.execute();
-        Content jsonResponse = response.returnContent();
-        String jsonResponseString = jsonResponse.asString();
+        Content content = response.returnContent();
+        String responseString = content.asString();
 
-        JsonObject jsonrepsonse = new JsonParser().parse(jsonResponseString).getAsJsonObject();
-        JsonObject properties = jsonrepsonse.get(("PropertyTable")).getAsJsonObject().get("Properties").getAsJsonArray().get(0).getAsJsonObject();
+        JsonObject jsonResponse = JsonParser.parseString(responseString).getAsJsonObject();
+        JsonObject properties = jsonResponse.get(("PropertyTable")).getAsJsonObject().get("Properties").getAsJsonArray().get(0).getAsJsonObject();
         Integer cid = properties.get("CID").getAsInt();
         String IUPACName = null;
         if (properties.has("IUPACName")) {

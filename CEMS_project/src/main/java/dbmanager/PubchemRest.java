@@ -1,4 +1,3 @@
-<<<<<<< HEAD:CEMS_project/src/dbmanager/PubchemRest.java
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -24,6 +23,8 @@ import org.apache.hc.client5.http.fluent.Content;
 import org.apache.hc.client5.http.fluent.Form;
 import org.apache.hc.client5.http.fluent.Request;
 import org.apache.hc.client5.http.fluent.Response;
+
+import static constants.Constants.PUBCHEM_ENDPOINT_COMPOUND_NAME;
 
 /**
  *
@@ -53,7 +54,7 @@ public class PubchemRest {
                 bodyForm(Form.form().add("inchi", inchi).build())
                 .execute().returnContent();
         String jsonResponseString = content.asString();
-        JsonObject jsonrepsonse = new JsonParser().parse(jsonResponseString).getAsJsonObject();
+        JsonObject jsonrepsonse = JsonParser.parseString(jsonResponseString).getAsJsonObject();
 
         JsonObject properties = jsonrepsonse.get(("PropertyTable")).getAsJsonObject().get("Properties").getAsJsonArray().get(0).getAsJsonObject();
         Integer cid = properties.get("CID").getAsInt();
@@ -63,12 +64,43 @@ public class PubchemRest {
         return identifier;
     }
 
+    public static Compound getCompoundFromInChIPC(String inchi, Integer compound_id, String name, String casId, String cembioId) throws IOException, NullPointerException {
+        Content content = Request.post("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchi/property/IUPACName,MonoisotopicMass,inchi,InChIKey,CanonicalSMILES,MolecularFormula,XLogP/JSON").
+                bodyForm(Form.form().add("inchi", inchi).build())
+                .execute().returnContent();
+        String jsonResponseString = content.asString();
+        JsonObject jsonrepsonse = JsonParser.parseString(jsonResponseString).getAsJsonObject();
+        JsonObject properties = jsonrepsonse.get(("PropertyTable")).getAsJsonObject().get("Properties").getAsJsonArray().get(0).getAsJsonObject();
+        Integer cid = properties.get("CID").getAsInt();
+        System.out.println(compound_id + "\t" + "cid = " + cid);
+        String IUPACName = null;
+        if (properties.has("IUPACName")) {
+            IUPACName = properties.get("IUPACName").getAsString();
+        }
+        String molecularFormula = properties.get("MolecularFormula").getAsString();
+        String inchi_key = properties.get("InChIKey").getAsString();
+        inchi = properties.get("InChI").getAsString();
+        String smiles = properties.get("CanonicalSMILES").getAsString();
+        Double logP = null;
+        if (properties.has("XLogP")) {
+            logP = properties.get("XLogP").getAsDouble();
+        }
+        Double mass = properties.get("MonoisotopicMass").getAsDouble();
+        Integer compound_status = 0;
+        Integer compound_type = 0;
+
+        Identifier identifiers = new Identifier(inchi, inchi_key, smiles, cid, cembioId);
+        Compound compound = new Compound(compound_id, name, casId, molecularFormula, mass, compound_status, compound_type, logP, identifiers);
+
+        return compound;
+    }
+
     public static Identifier getIdentifiersFromINCHIKEYPC(String inchi_key) throws IOException {
         Content content = Request.post("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/InChIKey/property/inchi,CanonicalSMILES/JSON").
                 bodyForm(Form.form().add("inchikey", inchi_key).build())
                 .execute().returnContent();
         String jsonResponseString = content.asString();
-        JsonObject jsonrepsonse = new JsonParser().parse(jsonResponseString).getAsJsonObject();
+        JsonObject jsonrepsonse = JsonParser.parseString(jsonResponseString).getAsJsonObject();
 
         JsonObject properties = jsonrepsonse.get(("PropertyTable")).getAsJsonObject().get("Properties").getAsJsonArray().get(0).getAsJsonObject();
         Integer cid = properties.get("CID").getAsInt();
@@ -83,7 +115,7 @@ public class PubchemRest {
                 bodyForm(Form.form().add("inchikey", inchi_key).build())
                 .execute().returnContent();
         String jsonResponseString = content.asString();
-        JsonObject jsonrepsonse = new JsonParser().parse(jsonResponseString).getAsJsonObject();
+        JsonObject jsonrepsonse = JsonParser.parseString(jsonResponseString).getAsJsonObject();
 
         JsonObject properties = jsonrepsonse.get(("PropertyTable")).getAsJsonObject().get("Properties").getAsJsonArray().get(0).getAsJsonObject();
         Integer cid = properties.get("CID").getAsInt();
@@ -95,7 +127,7 @@ public class PubchemRest {
                 bodyForm(Form.form().add("smiles", smiles).build())
                 .execute().returnContent();
         String jsonResponseString = content.asString();
-        JsonObject jsonrepsonse = new JsonParser().parse(jsonResponseString).getAsJsonObject();
+        JsonObject jsonrepsonse = JsonParser.parseString(jsonResponseString).getAsJsonObject();
 
         JsonObject properties = jsonrepsonse.get(("PropertyTable")).getAsJsonObject().get("Properties").getAsJsonArray().get(0).getAsJsonObject();
         Integer cid = properties.get("CID").getAsInt();
@@ -105,15 +137,10 @@ public class PubchemRest {
         return identifier;
     }
 
-    //ESTA
-    public static Compound getCompoundFromName(String name) throws IOException, IllegalArgumentException {
-        while (name.contains(" ")) {
-            name = name.replace(" ", "%20");
-        }
-//        System.out.println(name);
-//        name = name.replace(" ", "%20");
-//        name = name.replace(" ", "%20");
-        String uriString = Constants.PUBCHEM_ENDPOINT_COMPOUND_NAME + name + "/property/IUPACName,MonoisotopicMass,inchi,InChIKey,CanonicalSMILES,MolecularFormula,XLogP/JSON";
+    public static Compound getCompoundFromName(Integer compound_id, String name, String casId, String cembioId) throws IOException, IllegalArgumentException {
+        String nameForSearch = name.trim();
+        nameForSearch = nameForSearch.replaceAll(" ", "%20");
+        String uriString = PUBCHEM_ENDPOINT_COMPOUND_NAME + nameForSearch + "/property/IUPACName,MonoisotopicMass,inchi,InChIKey,CanonicalSMILES,MolecularFormula,XLogP/JSON";
 
         Request request = Request.get(uriString);
         request.addHeader("Connection", "keep-alive");
@@ -122,7 +149,47 @@ public class PubchemRest {
         Content jsonResponse = response.returnContent();
         String jsonResponseString = jsonResponse.asString();
 
-        JsonObject jsonrepsonse = new JsonParser().parse(jsonResponseString).getAsJsonObject();
+        JsonObject jsonrepsonse = JsonParser.parseString(jsonResponseString).getAsJsonObject();
+        JsonObject properties = jsonrepsonse.get(("PropertyTable")).getAsJsonObject().get("Properties").getAsJsonArray().get(0).getAsJsonObject();
+        Integer cid = properties.get("CID").getAsInt();
+        System.out.println(compound_id + "\t" + "cid = " + cid);
+        String IUPACName = null;
+        if (properties.has("IUPACName")) {
+            IUPACName = properties.get("IUPACName").getAsString();
+        }
+        String molecularFormula = properties.get("MolecularFormula").getAsString();
+        String inchi_key = properties.get("InChIKey").getAsString();
+        String inchi = properties.get("InChI").getAsString();
+        String smiles = properties.get("CanonicalSMILES").getAsString();
+        Double logP = null;
+        if (properties.has("XLogP")) {
+            logP = properties.get("XLogP").getAsDouble();
+        }
+        Double mass = properties.get("MonoisotopicMass").getAsDouble();
+        Integer compound_status = 0;
+        Integer compound_type = 0;
+
+        Identifier identifiers = new Identifier(inchi, inchi_key, smiles, cid, cembioId);
+        Compound compound = new Compound(compound_id, name, casId, molecularFormula, mass, compound_status, compound_type, logP, identifiers);
+
+        return compound;
+    }
+
+    //ESTA
+    public static Compound getCompoundFromName(String name) throws IOException, IllegalArgumentException {
+
+        String nameForSearch = name.trim();
+        nameForSearch = nameForSearch.replaceAll(" ", "%20");
+        String uriString = PUBCHEM_ENDPOINT_COMPOUND_NAME + nameForSearch + "/property/IUPACName,MonoisotopicMass,inchi,InChIKey,CanonicalSMILES,MolecularFormula,XLogP/JSON";
+
+        Request request = Request.get(uriString);
+        request.addHeader("Connection", "keep-alive");
+
+        Response response = request.execute();
+        Content jsonResponse = response.returnContent();
+        String jsonResponseString = jsonResponse.asString();
+
+        JsonObject jsonrepsonse = JsonParser.parseString(jsonResponseString).getAsJsonObject();
         JsonObject properties = jsonrepsonse.get(("PropertyTable")).getAsJsonObject().get("Properties").getAsJsonArray().get(0).getAsJsonObject();
         Integer cid = properties.get("CID").getAsInt();
         System.out.println("cid = " + cid);
@@ -145,17 +212,17 @@ public class PubchemRest {
         Integer compound_type = 0;
 
         Identifier identifiers = new Identifier(inchi, inchi_key, smiles, cid);
-        Compound compound = new Compound(compound_id, IUPACName, casId, molecularFormula, mass, compound_status, compound_type, logP, identifiers);
+        Compound compound = new Compound(compound_id, name, casId, molecularFormula, mass, compound_status, compound_type, logP, identifiers);
 
         return compound;
     }
 
-    public static int getPCIDFromName(String name) throws IOException {
-        name = name.replace(" ", "%20");
-        name = name.replace(" ", "%20");
-        //??????????????????????????????????????????????????????????????????????????
-//        String uriString = Constants.PUBCHEM_ENDPOINT_COMPOUND_NAME + name + "/property/JSON";
-        String uriString = Constants.PUBCHEM_ENDPOINT_COMPOUND_NAME + name + "/property/IUPACName/JSON";
+    public static Identifier getIdentifierFromName(String name) throws IOException {
+
+        String nameForSearch = name.trim();
+        nameForSearch = nameForSearch.replaceAll(" ", "%20");
+        String uriString = PUBCHEM_ENDPOINT_COMPOUND_NAME + nameForSearch + "/property/inchi,InChIKey,CanonicalSMILES/JSON";
+
         Request request = Request.get(uriString);
         request.addHeader("Connection", "keep-alive");
 
@@ -163,7 +230,31 @@ public class PubchemRest {
         Content jsonResponse = response.returnContent();
         String jsonResponseString = jsonResponse.asString();
 
-        JsonObject jsonrepsonse = new JsonParser().parse(jsonResponseString).getAsJsonObject();
+        JsonObject jsonrepsonse = JsonParser.parseString(jsonResponseString).getAsJsonObject();
+        JsonObject properties = jsonrepsonse.get(("PropertyTable")).getAsJsonObject().get("Properties").getAsJsonArray().get(0).getAsJsonObject();
+        Integer cid = properties.get("CID").getAsInt();
+        String inchi_key = properties.get("InChIKey").getAsString();
+        String inchi = properties.get("InChI").getAsString();
+        String smiles = properties.get("CanonicalSMILES").getAsString();
+
+        Identifier identifier = new Identifier(inchi, inchi_key, smiles);
+
+        return identifier;
+    }
+
+    public static int getPCIDFromName(String name) throws IOException {
+
+        String nameForSearch = name.trim();
+        nameForSearch = nameForSearch.replaceAll(" ", "%20");
+        String uriString = PUBCHEM_ENDPOINT_COMPOUND_NAME + nameForSearch + "/JSON";
+        Request request = Request.get(uriString);
+        request.addHeader("Connection", "keep-alive");
+
+        Response response = request.execute();
+        Content jsonResponse = response.returnContent();
+        String jsonResponseString = jsonResponse.asString();
+
+        JsonObject jsonrepsonse = JsonParser.parseString(jsonResponseString).getAsJsonObject();
         JsonObject properties = jsonrepsonse.get(("PropertyTable")).getAsJsonObject().get("Properties").getAsJsonArray().get(0).getAsJsonObject();
         Integer cid = properties.get("CID").getAsInt();
         //System.out.println("cid = " + cid);
@@ -179,7 +270,7 @@ public class PubchemRest {
         Content jsonResponse = response.returnContent();
         String jsonResponseString = jsonResponse.asString();
 
-        JsonObject jsonrepsonse = new JsonParser().parse(jsonResponseString).getAsJsonObject();
+        JsonObject jsonrepsonse = JsonParser.parseString(jsonResponseString).getAsJsonObject();
         JsonObject properties = jsonrepsonse.get(("PropertyTable")).getAsJsonObject().get("Properties").getAsJsonArray().get(0).getAsJsonObject();
         Integer cid = properties.get("CID").getAsInt();
         String IUPACName = null;
@@ -207,7 +298,6 @@ public class PubchemRest {
     }
 
     /**
-     *
      * @param pc_id
      * @return
      * @throws IOException
@@ -221,7 +311,7 @@ public class PubchemRest {
         Content jsonResponse = response.returnContent();
         String jsonResponseString = jsonResponse.asString();
 
-        JsonObject jsonrepsonse = new JsonParser().parse(jsonResponseString).getAsJsonObject();
+        JsonObject jsonrepsonse = JsonParser.parseString(jsonResponseString).getAsJsonObject();
         //try{
         Integer parentPC_ID = jsonrepsonse.get(("IdentifierList")).getAsJsonObject().get("CID").getAsInt();
 
@@ -235,6 +325,7 @@ public class PubchemRest {
     }
 
     //----------------------------------------------------------------------------------------
+
     /**
      * Este método recibe una lista de compounds y mediante accesos a pubchem
      * accede a la inchi y el pc_id a través del nombre de cada compuesto.
@@ -250,7 +341,7 @@ public class PubchemRest {
             try {
 
                 //consultar el pc_id del compound y su inchi
-                newComp = getCompoundFromName(c.getName());
+                newComp = getCompoundFromName(c.getCompound_id(), c.getName(), c.getCasId(), c.getIdentifiersOwn().getCembio_id());
                 //creamos los compounds con toda la info completa
                 comp.add(newComp);
 
@@ -281,7 +372,7 @@ public class PubchemRest {
         for (Compound c : compounds) {
             try {
                 //si previamente no hemos encontrado el compuesto hijo, no vamos a poder buscar al padre: lo ponemos todo a null
-                if (c.getIdentifiers().getPc_id() == null) {
+                if (c.getIdentifiersOwn().getPc_id() == null) {
                     System.out.println("No ha encontrado el hijo, asi que no puede buscar el padre");
                     Identifier i = new Identifier("No se puede buscar al padre", null);
                     Compound p = new Compound(i);
@@ -291,15 +382,16 @@ public class PubchemRest {
                 }
 
                 //buscar el padre
-                Compound compPadre = getParentCompoundFromPCID(c.getIdentifiers().getPc_id());
+                Compound compPadre = getParentCompoundFromPCID(c.getIdentifiersOwn().getPc_id());
                 padres.add(compPadre);
                 //System.out.println("parent: " + comp);
 
             } catch (IOException ex) {
-                System.out.println("Ha salido mal");
-                Identifier i = new Identifier("No hay padre", null);
-                Compound p = new Compound(i);
-                padres.add(p);
+                if(c.getIdentifiersOwn().getPc_id() != null){
+                    Compound compPadre = c;
+                    padres.add(compPadre);
+                }
+
                 Logger.getLogger(PubchemRest.class.getName()).log(Level.SEVERE, null, ex);
 
             }
@@ -313,14 +405,14 @@ public class PubchemRest {
         for (Compound c : compounds) {
             try {
 //              getIdentifiersFromInChIPC para obtener el Identifier completo a partir de la inchi
-                i = getIdentifiersFromInChIPC(c.getIdentifiers().getInchi());
+                i = getIdentifiersFromInChIPC(c.getIdentifiersOwn().getInchi());
 //                System.out.println(i);
 
                 Identifier i_final;
-                if (c.getIdentifiers().getHmdb_id() == null) {
+                if (c.getIdentifiersOwn().getHmdb_id() == null) {
                     i_final = new Identifier(i.getInchi(), i.getInchi_key(), i.getSmiles(), i.getPc_id(), null, null);
                 } else {
-                    i_final = new Identifier(i.getInchi(), i.getInchi_key(), i.getSmiles(), i.getPc_id(), c.getIdentifiers().getHmdb_id(), null);
+                    i_final = new Identifier(i.getInchi(), i.getInchi_key(), i.getSmiles(), i.getPc_id(), c.getIdentifiersOwn().getHmdb_id(), null);
                 }
 
                 Compound p = new Compound(c.getCompound_id(), c.getName(), c.getCasId(), i_final);
@@ -342,7 +434,7 @@ public class PubchemRest {
 
         try {
 //          getIdentifiersFromInChIPC para obtener el Identifier completo a partir de la inchi
-            i = getIdentifiersFromInChIPC(c.getIdentifiers().getInchi());
+            i = getIdentifiersFromInChIPC(c.getIdentifiersOwn().getInchi());
             System.out.println(i);
 
 //          getPCIDFromInchiKey para obtener el id
@@ -403,97 +495,4 @@ public class PubchemRest {
 //            Logger.getLogger(PubchemRest.class.getName()).log(Level.SEVERE, null, ex);
 //        }
 //    }
-=======
-package dbmanager;
-
-import static constants.Constants.*;
-import java.io.IOException;
-
-import cems_project.Identifier;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import org.apache.hc.client5.http.fluent.Content;
-import org.apache.hc.client5.http.fluent.Request;
-import org.apache.hc.client5.http.fluent.Response;
-
-public class PubchemRest {
-
-    public static void main(String[] args) {
-        Identifier id1 = null;
-        try {
-            id1 = getIdentifierFromName("carnitine");
-            System.out.println(id1);
-        } catch (IOException e) {
-            System.out.println(e);
-        }
-
-    }
-
-
-    /*
-    public static Compound getCompoundFromName(String name) throws IOException {
-        name = name.replace(" ", "%20");
-        name = name.replace(" ", "%20");
-        String uriString = PUBCHEM_ENDPOINT_COMPOUND_NAME + name + "/property/MonoisotopicMass,inchi,InChIKey,CanonicalSMILES,MolecularFormula,XLogP/JSON";
-
-        Request request = Request.get(uriString);
-        request.addHeader("Connection", "keep-alive");
-
-        Response response = request.execute();
-        Content jsonResponse = response.returnContent();
-        String jsonResponseString = jsonResponse.asString();
-
-        JsonObject jsonrepsonse = new JsonParser().parse(jsonResponseString).getAsJsonObject();
-        JsonObject properties = jsonrepsonse.get(("PropertyTable")).getAsJsonObject().get("Properties").getAsJsonArray().get(0).getAsJsonObject();
-        Integer cid = properties.get("CID").getAsInt();
-        String IUPACName = null;
-        if (properties.has("IUPACName")) {
-            IUPACName = properties.get("IUPACName").getAsString();
-        }
-        String molecularFormula = properties.get("MolecularFormula").getAsString();
-        String inchi_key = properties.get("InChIKey").getAsString();
-        String inchi = properties.get("InChI").getAsString();
-        String smiles = properties.get("CanonicalSMILES").getAsString();
-        Double logP = null;
-        if (properties.has("XLogP")) {
-            logP = properties.get("XLogP").getAsDouble();
-        }
-        Double mass = properties.get("MonoisotopicMass").getAsDouble();
-        String casId = null;
-        Integer compound_id = 0;
-        Integer compound_status = 0;
-        Integer compound_type = 0;
-
-        Identifier identifiers = new Identifier(inchi, inchi_key, smiles);
-        Compound compound = new Compound(compound_id, casId, molecularFormula, mass, compound_status, compound_type, logP, identifiers);
-
-        return compound;
-    }
-*/
-
-    public static Identifier getIdentifierFromName(String name) throws IOException {
-        name = name.replace(" ", "%20");
-        name = name.replace(" ", "%20");
-        String uriString = PUBCHEM_ENDPOINT_COMPOUND_NAME + name + "/property/inchi,InChIKey,CanonicalSMILES/JSON";
-
-        Request request = Request.get(uriString);
-        request.addHeader("Connection", "keep-alive");
-
-        Response response = request.execute();
-        Content jsonResponse = response.returnContent();
-        String jsonResponseString = jsonResponse.asString();
-
-        JsonObject jsonrepsonse = new JsonParser().parse(jsonResponseString).getAsJsonObject();
-        JsonObject properties = jsonrepsonse.get(("PropertyTable")).getAsJsonObject().get("Properties").getAsJsonArray().get(0).getAsJsonObject();
-        Integer cid = properties.get("CID").getAsInt();
-        String inchi_key = properties.get("InChIKey").getAsString();
-        String inchi = properties.get("InChI").getAsString();
-        String smiles = properties.get("CanonicalSMILES").getAsString();
-
-        Identifier identifier = new Identifier(inchi, inchi_key, smiles);
-
-        return identifier;
-    }
-
->>>>>>> 54b4dddb5effc8a2311644451e97f6abca02dca4:CEMS_project/src/main/java/dbmanager/PubchemRest.java
 }

@@ -23,7 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static utilities.fileIO.readStringFromFile;
+import static utilities.FileIO.readStringFromFile;
 
 /**
  *
