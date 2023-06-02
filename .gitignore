@@ -1,6 +1,9 @@
 # Compiled class file
 *.class
 
+#Intellij Files
+CEMS_project/.idea*
+
 #password files
 *.pass
 
@@ -27,6 +30,8 @@ hs_err_pid*
 
 #DO NOT UPLOAD BUILD DIRECTORY
 CEMS_project/build/*
+CEMS_project/target/*
+
 
 # DO NOT UPLOAD TEMPORARY FILES FROM OFFICE
 ~*
