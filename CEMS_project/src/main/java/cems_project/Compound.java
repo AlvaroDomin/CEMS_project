@@ -6,28 +6,30 @@
 package cems_project;
 
 /**
- *
  * @author maria
  */
+
+import chemicalFormula.PeriodicTable;
+import patternFinders.PatternFinder;
+
 import java.util.Objects;
 //import patternFinders.PatternFinder;
 //import utilities.Utilities;
 
 /**
- *
  * @author alberto.gildelafuent
  */
 public class Compound {
 
     private Integer compound_id;
-    private final String name;
+    private final String compoundName;
     private final String casId;
     private final String formula;
-    private final Double mass;
-//    private final Integer charge_type;
-//    private final Integer charge_number;
-//    private final String formula_type;
-//    private final Integer formula_type_int;
+    private final Double monoisotopicMass;
+    private final Integer charge_type;
+    private final Integer charge_number;
+    private final String formula_type;
+    private final Integer formula_type_int;
     private final Integer compound_type;
     private final Integer compound_status;
     private final Double logP;
@@ -35,27 +37,30 @@ public class Compound {
     private final Identifier identifiersParent;
 
 
-    public Compound(Integer compound_id, String name, String casId, String formula, Double mass, Integer compound_status, Integer compound_type, Double logP,
-            Identifier identifiersOwn, Identifier identifiersParent) {
+    public Compound(Integer compound_id, String name, String casId, String formula, Double monoisotopicMass,
+                    Integer compound_status, Integer compound_type, Double logP,
+                    Identifier identifiersOwn, Identifier identifiersParent) {
         this.compound_id = compound_id;
-        this.name = name;
+        this.compoundName = name;
         this.casId = casId;
         this.formula = formula;
-        this.mass = mass;
+        this.monoisotopicMass = monoisotopicMass;
         this.compound_status = compound_status;
         this.logP = logP;
         this.identifiersOwn = identifiersOwn;
         this.identifiersParent = identifiersParent;
-//        int[] charges = PatternFinder.getChargeFromSmiles(identifiers.getSmiles());
-//        this.charge_type = charges[0];
-//        this.charge_number = charges[1];
-//        this.formula_type = PatternFinder.getTypeFromFormula(formula);
-//        this.formula_type_int = Utilities.getIntChemAlphabet(formula_type);
+        int[] charges = PatternFinder.getChargeFromSmiles(identifiersOwn.getSmiles());
+        this.charge_type = charges[0];
+        this.charge_number = charges[1];
+        this.formula_type = PatternFinder.getTypeFromFormula(formula);
+        this.formula_type_int = PeriodicTable.getIntChemAlphabet(formula_type);
         this.compound_type = compound_type;
     }
-    public Compound(Integer compound_id, String name, String casId, String formula, Double mass, Integer compound_status, Integer compound_type, Double logP,
+
+    public Compound(Integer compound_id, String name, String casId, String formula, Double monoisotopicMass,
+                    Integer compound_status, Integer compound_type, Double logP,
                     Identifier identifiersOwn) {
-        this(compound_id,name,casId,formula,mass,compound_status,compound_type,logP,identifiersOwn,null);
+        this(compound_id, name, casId, formula, monoisotopicMass, compound_status, compound_type, logP, identifiersOwn, null);
     }
 
     public Compound(String name) {
@@ -94,8 +99,8 @@ public class Compound {
         this.compound_id = compound_id;
     }
 
-    public String getName() {
-        return name;
+    public String getCompoundName() {
+        return compoundName;
     }
 
     public String getCasId() {
@@ -106,11 +111,11 @@ public class Compound {
         return formula;
     }
 
-    public Double getMass() {
-        return mass;
+    public Double getMonoisotopicMass() {
+        return monoisotopicMass;
     }
 
-//    public Integer getCharge_type() {
+    //    public Integer getCharge_type() {
 //        return charge_type;
 //    }
 //
@@ -143,6 +148,18 @@ public class Compound {
 
     public Identifier getIdentifiersParent() {
         return this.identifiersParent;
+    }
+
+    public String getINCHI(){
+        return this.identifiersOwn.getInchi();
+    }
+
+    public String getRefHMDB(){
+        return this.identifiersOwn.getHmdb_id();
+    }
+
+    public Integer getRefPubChem(){
+        return this.identifiersOwn.getPc_id();
     }
 
 
@@ -178,10 +195,10 @@ public class Compound {
     public String toString() {
         return "Compound{" +
                 "compound_id=" + compound_id +
-                ", name='" + name + '\'' +
+                ", name='" + compoundName + '\'' +
                 ", casId='" + casId + '\'' +
                 ", formula='" + formula + '\'' +
-                ", mass=" + mass +
+                ", mass=" + monoisotopicMass +
                 ", compound_type=" + compound_type +
                 ", compound_status=" + compound_status +
                 ", logP=" + logP +

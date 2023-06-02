@@ -64,7 +64,7 @@ public class PubchemRest {
         return identifier;
     }
 
-    public static Compound getCompoundFromInChIPC(String inchi, Integer compound_id, String name, String casId, String cembioId) throws IOException, NullPointerException {
+    public static Compound getCompoundFromInChIPC(String inchi, Integer compound_id, String name, String casId, Integer cembioId) throws IOException, NullPointerException {
         Content content = Request.post("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchi/property/IUPACName,MonoisotopicMass,inchi,InChIKey,CanonicalSMILES,MolecularFormula,XLogP/JSON").
                 bodyForm(Form.form().add("inchi", inchi).build())
                 .execute().returnContent();
@@ -137,7 +137,7 @@ public class PubchemRest {
         return identifier;
     }
 
-    public static Compound getCompoundFromName(Integer compound_id, String name, String casId, String cembioId) throws IOException, IllegalArgumentException {
+    public static Compound getCompoundFromName(Integer compound_id, String name, String casId, Integer cembioId) throws IOException, IllegalArgumentException {
         String nameForSearch = name.trim();
         nameForSearch = nameForSearch.replaceAll(" ", "%20");
         String uriString = PUBCHEM_ENDPOINT_COMPOUND_NAME + nameForSearch + "/property/IUPACName,MonoisotopicMass,inchi,InChIKey,CanonicalSMILES,MolecularFormula,XLogP/JSON";
@@ -341,14 +341,14 @@ public class PubchemRest {
             try {
 
                 //consultar el pc_id del compound y su inchi
-                newComp = getCompoundFromName(c.getCompound_id(), c.getName(), c.getCasId(), c.getIdentifiersOwn().getCembio_id());
+                newComp = getCompoundFromName(c.getCompound_id(), c.getCompoundName(), c.getCasId(), c.getIdentifiersOwn().getCembio_id());
                 //creamos los compounds con toda la info completa
                 comp.add(newComp);
 
             } catch (IOException | IllegalArgumentException ex) {
                 System.out.println("Ha salido mal");
                 Identifier i = new Identifier("REVISAR");
-                newComp = new Compound(c.getCompound_id(), c.getName(), c.getCasId(), i);
+                newComp = new Compound(c.getCompound_id(), c.getCompoundName(), c.getCasId(), i);
                 comp.add(newComp);
                 Logger.getLogger(PubchemRest.class.getName()).log(Level.SEVERE, null, ex);
 
@@ -368,7 +368,7 @@ public class PubchemRest {
         // es mejor que devuelva a los padres porque así comparamos los ids
         //int cid;
         Compound compHijo;
-        List<Compound> padres = new LinkedList();
+        List<Compound> padres = new LinkedList<>();
         for (Compound c : compounds) {
             try {
                 //si previamente no hemos encontrado el compuesto hijo, no vamos a poder buscar al padre: lo ponemos todo a null
@@ -415,13 +415,13 @@ public class PubchemRest {
                     i_final = new Identifier(i.getInchi(), i.getInchi_key(), i.getSmiles(), i.getPc_id(), c.getIdentifiersOwn().getHmdb_id(), null);
                 }
 
-                Compound p = new Compound(c.getCompound_id(), c.getName(), c.getCasId(), i_final);
+                Compound p = new Compound(c.getCompound_id(), c.getCompoundName(), c.getCasId(), i_final);
                 comps.add(p);
 
             } catch (IOException | NullPointerException ex) {
                 System.out.println("Ha salido mal");
                 Identifier iden = new Identifier("REVISAR");
-                Compound newComp = new Compound(c.getCompound_id(), c.getName(), c.getCasId(), iden);
+                Compound newComp = new Compound(c.getCompound_id(), c.getCompoundName(), c.getCasId(), iden);
                 comps.add(newComp);
             }
         }
@@ -447,7 +447,7 @@ public class PubchemRest {
         } catch (IOException ex) {
             System.out.println("Ha salido mal");
             i = new Identifier("REVISAR");
-            Compound comp = new Compound(c.getName(), i);
+            Compound comp = new Compound(c.getCompoundName(), i);
             System.out.println(comp);
             Logger.getLogger(PubchemRest.class.getName()).log(Level.SEVERE, null, ex);
         }

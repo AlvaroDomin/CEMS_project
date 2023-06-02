@@ -41,7 +41,7 @@ public class RegexInChI {
 
     public static String getMainPart(String inchi) throws IllegalArgumentException {
 
-        List<String> inchisMain = new LinkedList();
+        List<String> inchisMain = new LinkedList<String>();
         String[] inchiParts = inchi.split("/");
         try {
             String mainPart = inchiParts[0] + "/" + inchiParts[1] + "/" + inchiParts[2];

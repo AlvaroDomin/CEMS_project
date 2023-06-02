@@ -186,7 +186,7 @@ public class PatternFinder {
 
         Matcher m = p.matcher(content);
 
-        Set<String> compiledSet = new TreeSet();
+        Set<String> compiledSet = new TreeSet<String>();
 
         while (m.find()) {
             compiledSet.add(m.group());

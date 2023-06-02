@@ -16,6 +16,9 @@ public class Constants {
     // public static String CEFilePath = "C:/Users/maria/Documents/CEU/beca/datos/Tabla_patrones_CEMSnegnegSinProblemas.xlsx";
 
     public static String RESOURCES_PATH = "src/main/resources/";
+
+    public static String CEFilePath = RESOURCES_PATH + "input_excels/";
+
     public static String CEFilePath = RESOURCES_PATH + "input_excels/Tabla_patrones_CEMSnegnegSinProblemas.xlsx";
 
 

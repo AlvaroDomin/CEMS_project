@@ -24,9 +24,10 @@ public class Identifier {
     private final String smiles;
     private final Integer pc_id;
     private final String hmdb_id;
-    private final String cembio_id;
+    private final Integer cembio_id;
 
-    public Identifier(String inchi, String inchi_key, String smiles, Integer pc_id, String hmdb_id, String cembio_id) {
+    public Identifier(String inchi, String inchi_key, String smiles,
+                      Integer pc_id, String hmdb_id, Integer cembio_id) {
         this.inchi = inchi;
         this.inchi_key = inchi_key;
         this.smiles = smiles;
@@ -44,18 +45,19 @@ public class Identifier {
     }
 
     public Identifier(String inchi, Integer pc_id) {
-        this(inchi, null, null, pc_id, null, null);
+        this(inchi, null, null,
+                pc_id, null, null);
     }
 
     public Identifier(String inchi, String inchi_key, String smiles, Integer pc_id) {
         this(inchi, inchi_key, smiles, pc_id, null, null);
     }
 
-    public Identifier(String inchi, String inchi_key, String smiles, Integer pc_id, String cembio_id) {
+    public Identifier(String inchi, String inchi_key, String smiles, Integer pc_id, Integer cembio_id) {
         this(inchi, inchi_key, smiles, pc_id, null, cembio_id);
     }
 
-    public Identifier(String inchi, Integer pc_id, String hmdb_id, String cembio_id) {
+    public Identifier(String inchi, Integer pc_id, String hmdb_id, Integer cembio_id) {
         this(inchi, null, null, pc_id, hmdb_id, cembio_id);
     }
 
@@ -79,7 +81,7 @@ public class Identifier {
         return hmdb_id;
     }
 
-    public String getCembio_id() {
+    public Integer getCembio_id() {
         return cembio_id;
     }
 

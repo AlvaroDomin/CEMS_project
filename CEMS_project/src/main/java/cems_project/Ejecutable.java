@@ -5,26 +5,16 @@
  */
 package cems_project;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import dbmanager.ChemSpiderREST;
 import dbmanager.ClassyFire;
-import dbmanager.DBManager;
 import dbmanager.PubchemRest;
 import exceptions.CompoundNotClassifiedException;
 import exceptions.WrongRequestException;
-import org.apache.hc.core5.net.Ports;
 import patternFinders.PatternFinder;
 import patternFinders.RegexInChI;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static utilities.FileIO.readStringFromFile;
 
 /**
  * @author maria
@@ -65,7 +55,7 @@ public class Ejecutable {
      * @return wether the compound c should be checked taking into account the stereochemistry or not.
      */
     public static boolean checkStereoChemistry(Compound c) {
-        String name = c.getName().toUpperCase();
+        String name = c.getCompoundName().toUpperCase();
         String patternDeuterium = "([dD][0-9]+)";
         boolean containsDeuterium = PatternFinder.containsPattern(name, patternDeuterium);
 
@@ -297,7 +287,7 @@ public class Ejecutable {
     public static void main(String[] args) {
 
         List<String> fullInchisCembio = new ArrayList<>();
-        List<String> fullInchisComercial = new LinkedList();
+        List<String> fullInchisComercial = new LinkedList<>();
         List<String> repetidos = new ArrayList<>();
 //        System.out.println(repetidos.size());
         List<String> parentInchiMainPartsCembio = new ArrayList<>();

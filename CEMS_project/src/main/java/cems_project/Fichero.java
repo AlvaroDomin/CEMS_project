@@ -36,11 +36,11 @@ import patternFinders.RegexInChI;
  */
 public class Fichero {
 
-    public static List<Metabolito> leerFichero() {  //utilizar interfaces: devolver List, no LinkedList (para no centrarnos solo en esta implementación)
+    public static List<CEMSCompound> leerFichero() {  //utilizar interfaces: devolver List, no LinkedList (para no centrarnos solo en esta implementación)
 
         // TODO code application logic here
         File excelFile = new File(Constants.CEFilePath);
-        List<Metabolito> metabolitos = new LinkedList<Metabolito>();
+        List<CEMSCompound> metabolitos = new LinkedList<CEMSCompound>();
 
         // we create an XSSF Workbook object for our XLSX Excel File
         //It is a class that is used to represent both high and low level Excel file formats.
@@ -177,8 +177,13 @@ public class Fichero {
                 }
 
                 //vamos creando cada metabolito y lo añadimos a la lista
-                Metabolito m = new Metabolito(name, INCHI, RefHMDB, RefPubChem, formula, M, m_z, MTcompnd, MTmets, RMTmets, MTmes, RMTmes, fragments, eff_mobility);
+
+
+/*
+                CEMSCompound m = new CEMSCompound(name, INCHI, RefHMDB, RefPubChem, formula, M, m_z, MTcompnd, MTmets, RMTmets, MTmes, RMTmes, fragments, eff_mobility);
                 metabolitos.add(m);
+
+ */
 
             }
 
@@ -234,8 +239,14 @@ public class Fichero {
                     System.out.println("Check ID: " + id);
                     pc_id = null;
                 }
-
-                Identifier i = new Identifier(inchi, null, null, pc_id, null, cembio_id);
+                cembio_id = cembio_id.replaceAll("\\D+", "");
+                Integer cembio_id_int = null;
+                try {
+                    cembio_id_int = Integer.parseInt(cembio_id);
+                } catch (NumberFormatException nfe) {
+                    cembio_id_int = null;
+                }
+                Identifier i = new Identifier(inchi, null, null, pc_id, null, cembio_id_int);
                 Compound c = new Compound(id, name, cas_id, i);
                 comps.add(c);
 
@@ -284,10 +295,17 @@ public class Fichero {
                 cellIterator.next();
                 cellIterator.next();
                 cembio_id = cellIterator.next().getStringCellValue().trim();
+                cembio_id = cembio_id.replaceAll("\\D+", "");
+                Integer cembio_id_int = null;
+                try {
+                    cembio_id_int = Integer.parseInt(cembio_id);
+                } catch (NumberFormatException nfe) {
+                    cembio_id_int = null;
+                }
                 cas_id = cellIterator.next().getStringCellValue().trim();
 
                 try {
-                    Compound c = PubchemRest.getCompoundFromName(id, name, cas_id, cembio_id);
+                    Compound c = PubchemRest.getCompoundFromName(id, name, cas_id, cembio_id_int);
                     comps.add(c);
                 } catch (ClientProtocolException ex) {
 
@@ -303,21 +321,21 @@ public class Fichero {
                     // if we have an inchi, we find it in pubchem
                     if (inchi != null) {
                         try {
-                            Compound c = PubchemRest.getCompoundFromInChIPC(inchi, id, name, cas_id, cembio_id);
+                            Compound c = PubchemRest.getCompoundFromInChIPC(inchi, id, name, cas_id, cembio_id_int);
                             comps.add(c);
                         } catch (org.apache.hc.client5.http.HttpResponseException ex2) {
-                            Identifier i = new Identifier(inchi, null, null, null, null, cembio_id);
+                            Identifier i = new Identifier(inchi, null, null, null, null, cembio_id_int);
                             Compound c = new Compound(id, name, cas_id, i);
                             comps.add(c);
                             System.out.println("Compound " + id + " NOT FOUND");
                         } catch (NullPointerException npe) {
-                            Identifier i = new Identifier(inchi, null, null, null, null, cembio_id);
+                            Identifier i = new Identifier(inchi, null, null, null, null, cembio_id_int);
                             Compound c = new Compound(id, name, cas_id, i);
                             comps.add(c);
                             System.out.println("Compound " + id + " NOT FOUND in PUBCHEM. The inchi is " + inchi);
                         }
                     } else {
-                        Identifier i = new Identifier(null, null, null, null, null, cembio_id);
+                        Identifier i = new Identifier(null, null, null, null, null, cembio_id_int);
                         Compound c = new Compound(id, name, cas_id, i);
                         comps.add(c);
                         System.out.println("Compound " + id + " NOT FOUND with CAS NOT FOUND " + cas_id);
@@ -368,7 +386,7 @@ public class Fichero {
             cell_Id = row.createCell(0);
             cell_Id.setCellValue(comps.get(i).getCompound_id());
             cellNombre = row.createCell(1);
-            cellNombre.setCellValue(comps.get(i).getName());
+            cellNombre.setCellValue(comps.get(i).getCompoundName());
             cellCembio_id = row.createCell(2);
             cellCembio_id.setCellValue(comps.get(i).getIdentifiersOwn().getCembio_id());
             cellCASId = row.createCell(3);
@@ -434,7 +452,7 @@ public class Fichero {
             cell_Id = row.createCell(0);
             cell_Id.setCellValue(comps.get(i).getCompound_id());
             cellNombre = row.createCell(1);
-            cellNombre.setCellValue(comps.get(i).getName());
+            cellNombre.setCellValue(comps.get(i).getCompoundName());
             cellCembio_id = row.createCell(2);
             cellCembio_id.setCellValue(comps.get(i).getIdentifiersOwn().getCembio_id());
             cellCASId = row.createCell(3);
@@ -573,7 +591,7 @@ public class Fichero {
             cellID = row.createCell(0);
             cellID.setCellValue(comps.get(i).getCompound_id());
             cellNombre = row.createCell(1);
-            cellNombre.setCellValue(comps.get(i).getName());
+            cellNombre.setCellValue(comps.get(i).getCompoundName());
             cellPc_id = row.createCell(2);
             try {
                 cellPc_id.setCellValue(comps.get(i).getIdentifiersOwn().getPc_id());
@@ -643,14 +661,19 @@ public class Fichero {
                 String name = cellIterator.next().getStringCellValue();
                 // cembio id
                 String cembio_id = cellIterator.next().getStringCellValue();
+                Integer cembio_id_int = null;
+                try {
+                    cembio_id_int = Integer.parseInt(cembio_id);
+                } catch (NumberFormatException nfe) {
+                    cembio_id_int = null;
+                }
                 // cas ID
                 String cas_id = cellIterator.next().getStringCellValue();
                 // inchi
                 String inchi = null;
                 try {
                     inchi = cellIterator.next().getStringCellValue();
-                } catch(IllegalStateException ise)
-                {
+                } catch (IllegalStateException ise) {
                     System.out.println("REVISAR Id " + id);
                 }
                 // pc id
@@ -670,10 +693,10 @@ public class Fichero {
                 }
                 // inchi padre
                 inchiPadre = cellIterator.next().getStringCellValue();
-                Identifier idOwn = new Identifier(inchi,pc_id_own,null,cembio_id);
-                Identifier idParent = new Identifier(inchiPadre,pc_id_parent);
+                Identifier idOwn = new Identifier(inchi, pc_id_own, null, cembio_id_int);
+                Identifier idParent = new Identifier(inchiPadre, pc_id_parent);
                 String formula = RegexInChI.getFormulaFromInChI(inchi);
-                Compound c = new Compound(id, name, cas_id,formula,null,null,null,null,idOwn,idParent);
+                Compound c = new Compound(id, name, cas_id, formula, null, null, null, null, idOwn, idParent);
 
                 comps.add(c);
 
@@ -750,8 +773,7 @@ public class Fichero {
                 String inchi = null;
                 try {
                     inchi = cellIterator.next().getStringCellValue();
-                } catch(IllegalStateException ise)
-                {
+                } catch (IllegalStateException ise) {
                     System.out.println("REVISAR Id " + id);
                 }
                 // pc id
@@ -772,10 +794,10 @@ public class Fichero {
 
                 // inchi padre
                 inchiPadre = cellIterator.next().getStringCellValue();
-                Identifier idOwn = new Identifier(inchi,pc_id_own,hmdb_id,null);
-                Identifier idParent = new Identifier(inchiPadre,pc_id_parent);
+                Identifier idOwn = new Identifier(inchi, pc_id_own, hmdb_id, null);
+                Identifier idParent = new Identifier(inchiPadre, pc_id_parent);
                 String formula = RegexInChI.getFormulaFromInChI(inchi);
-                Compound c = new Compound(id, name, cas_id,formula,null,null,null,null,idOwn,idParent);
+                Compound c = new Compound(id, name, cas_id, formula, null, null, null, null, idOwn, idParent);
 
                 comps.add(c);
 

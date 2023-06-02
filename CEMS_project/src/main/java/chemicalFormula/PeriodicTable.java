@@ -1,9 +1,6 @@
 package chemicalFormula;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class PeriodicTable {
 
@@ -179,4 +176,23 @@ public class PeriodicTable {
         SETCHNOPSCLD.add("Cl");
         SETCHNOPSCLD.add("D");
     }
+
+    public static final Map<String, Integer> MAPCHEMALPHABET;
+
+    static {
+        Map<String, Integer> mapChemAlphabetTMP = new LinkedHashMap<>();
+        mapChemAlphabetTMP.put("CHNOPS", 0);
+        mapChemAlphabetTMP.put("CHNOPSD", 1);
+        mapChemAlphabetTMP.put("CHNOPSCL", 2);
+        mapChemAlphabetTMP.put("CHNOPSCLD", 3);
+        mapChemAlphabetTMP.put("ALL", 4);
+        mapChemAlphabetTMP.put("ALLD", 5);
+        MAPCHEMALPHABET = Collections.unmodifiableMap(mapChemAlphabetTMP);
+    }
+
+    public static int getIntChemAlphabet(String inputChemAlphabet) {
+        int intChemAlphabet = MAPCHEMALPHABET.getOrDefault(inputChemAlphabet, 5);
+        return intChemAlphabet;
+    }
+
 }
