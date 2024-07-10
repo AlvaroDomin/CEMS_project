@@ -5,12 +5,19 @@
  */
 package dbmanager;
 
+import cems_project.CEMSExperimentalConditions;
 import cems_project.Fragment;
 import cems_project.CEMSCompound;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import exceptions.IonizationTypeNotFound;
 import exceptions.WrongRequestException;
+import experimental_properties.BufferType;
+import experimental_properties.IonizationModeType;
+import experimental_properties.PolarityType;
+import experimental_properties.SampleType;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Connection;
@@ -23,10 +30,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import static utilities.FileIO.readStringFromFile;
 
 /**
- *
  * @author alberto.gildelafuent
  */
 public class DBManager {
@@ -37,10 +44,10 @@ public class DBManager {
     /**
      * Method to connect to the database
      *
-     * @param bd JDBC String to coonect -> Example
-     * "jdbc:mysql://localhost/<DATABASE_NAME>/?useSSL=false&serverTimezone=UuseSSLTC
+     * @param bd      JDBC String to coonect -> Example
+     *                "jdbc:mysql://localhost/<DATABASE_NAME>/?useSSL=false&serverTimezone=UuseSSLTC
      * @param usuario username of the database -> Example -> Root
-     * @param clave "password of the database" -> example -> password
+     * @param clave   "password of the database" -> example -> password
      */
     public void connectToDB(String bd, String usuario, String clave) {
         try {
@@ -58,7 +65,7 @@ public class DBManager {
 
     //----------------------------------------------------------------------------------------------------------
     //métodos nuevos:
-    public void insertMetabolite(CEMSCompound m) {
+    public void insertMetabolite(CEMSCompound m, CEMSExperimentalConditions c) {
 
         //select id donde coincida la INCHI
         String sql = "SELECT compound_id FROM compound_identifiers WHERE inchi LIKE ?";
@@ -86,21 +93,21 @@ public class DBManager {
 
             // SELECT CEEXPPROP ID FROM EXPERIMENTAL PROPERTIES NEG, INVERSO, TEMP y BUFFER
             sql = ConstantQueries.SELECT_CE_EXP_PROP;
-            //"SELECT ce_exp_prop_id FROM ce_experimental_properties WHERE buffer = ? AND temperature = ? AND ionization_mode = ? AND polarity = ?"
             ps = this.connection.prepareStatement(sql);
-            ps.setInt(1, ConstantQueries.BUFFER);
-            ps.setInt(2, ConstantQueries.TEMPERATURE);
-            ps.setInt(3, ConstantQueries.IONIZATION_MODE);
-            ps.setInt(4, ConstantQueries.POLARITY);
+            ps.setInt(1, BufferType.MAPBUFFERTYPES.get(c.getBuffer()));
+            ps.setInt(2, c.getTemperature());
+            ps.setInt(3, PolarityType.MAPPOLARITYTYPE.get(c.getPolarity()));
             int ce_ex_prop_id = getInt(ps);
             //System.out.println("ce_ex_prop_id: " + ce_ex_prop_id);
 
+            Integer ce_eff_mob_id = get_ce_eff_mob_id(compound_id, ce_ex_prop_id);
             // INSERT EFF MOB
-            int ce_eff_mob_id = insertCeEffMob(compound_id, ce_ex_prop_id, m);  //java.sql.SQLIntegrityConstraintViolationException: Duplicate entry
-            //System.out.println("ce_eff_mob_id" + ce_eff_mob_id);
+            if (ce_eff_mob_id == null) {
+                ce_eff_mob_id = insertCeEffMob(compound_id, ce_ex_prop_id, m);  //java.sql.SQLIntegrityConstraintViolationException: Duplicate entry
+            }//System.out.println("ce_eff_mob_id" + ce_eff_mob_id);
 
             // INSERT METADATA WITH METH SULFONE AND PARACETAMOL
-            insertCeExpPropMet(ce_eff_mob_id, m);       //java.sql.SQLIntegrityConstraintViolationException: Cannot add or update a child row
+            insertCeExpPropMet(ce_eff_mob_id, m, c);       //java.sql.SQLIntegrityConstraintViolationException: Cannot add or update a child row
 
             // INSERT FRAGMENTS
             //insertamos los fragmentos
@@ -205,6 +212,37 @@ public class DBManager {
         }
     }
 
+    /**
+     * @param compound_id
+     * @param ce_exp_prop_id
+     * @return the id of the ce ef mob exp properties and the compound
+     */
+    public Integer get_ce_eff_mob_id(int compound_id, int ce_exp_prop_id) {
+        String sql = ConstantQueries.SELECT_CE_EFF_MOB_ID;
+        Integer ce_eff_mob_id = null;
+        try {
+            PreparedStatement ps = this.connection.prepareStatement(sql);
+            ps.setInt(1, compound_id);
+            ps.setInt(2, ce_exp_prop_id);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                ce_eff_mob_id = rs.getInt(1);
+                rs.close();
+                return ce_eff_mob_id;
+            } else {
+                rs.close();
+                return null;
+            }
+        } catch (SQLException ex) {
+            //Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
+            if (ex.getErrorCode() == 1062) { //code de Duplicate Entry
+                System.out.println("No se inserta la información relativa a Effective Mobility porque ya estaba metida.");
+            }
+        }
+        return null;
+    }
+
     public int insertCeEffMob(int compound_id, int ce_ex_prop_id, CEMSCompound m) {
         //returns el id que se acaba de insertar (ce_eff_mob_id)
         String sql = ConstantQueries.INSERT_CE_EFF_MOB;
@@ -254,7 +292,7 @@ public class DBManager {
         return ce_eff_mob_id;
     }
 
-    public void insertCeExpPropMet(int ce_eff_mob_id, CEMSCompound m) {
+    public void insertCeExpPropMet(int ce_eff_mob_id, CEMSCompound m, CEMSExperimentalConditions c) {
 
         String sql = ConstantQueries.INSERT_CE_EXP_PROP_META;
         //"INSERT INTO ce_experimental_properties_metadata(ce_eff_mob_id, experimental_mz, capillary_voltage, capillary_length, bge_compound_id, absolute_MT, relative_MT) VALUES (?, ?, ?, ?, ?, ?, ?)"
@@ -263,43 +301,51 @@ public class DBManager {
 
             //cuidado con los valores que son null
             //insertamos lo referente a la metionina sulfona
-            ps.setInt(1, ce_eff_mob_id);
-            ps.setDouble(2, m.getExperimentalMZ());
-            ps.setInt(3, ConstantQueries.CAPILLARY_VOLTAGE);
-            ps.setInt(4, ConstantQueries.CAPILLARY_LENGTH);
-            ps.setInt(5, ConstantQueries.REFERENCE_COMPOUND_ID_METS);
 
-            if (m.getMT() == null) {
+            // ce_eff_mob_id, experimental_mz, ce_identification_level, ce_sample_type," +
+            // "capillary_length, capillary_voltage, " +
+            // "bge_compound_id, absolute_MT, relative_MT, commercial, exp_eff_mob, ionization_mode)
+            ps.setInt(1, ce_eff_mob_id);
+            // TODO SET AN SQL NULL VALUE WHEN VALUES ARE NULL
+            if (m.getExperimentalMZ() == null) {
+                ps.setNull(2, java.sql.Types.NULL);
+            } else {
+                ps.setDouble(2, m.getExperimentalMZ());
+            }
+            ps.setInt(3, m.getIdentificationLevel());
+            ps.setInt(4, m.getSampleTypeInt());
+            if (c.getCapillaryLength() == null) {
+                ps.setNull(5, java.sql.Types.NULL);
+            } else {
+                ps.setInt(5, c.getCapillaryLength());
+            }
+            if (c.getVoltage() == null) {
                 ps.setNull(6, java.sql.Types.NULL);
             } else {
-                ps.setDouble(6, m.getMT());
+                ps.setInt(6, c.getVoltage());
             }
-            if (m.getRMT() == null) {
+            if (c.getRef_compound_id_RMT() == null) {
                 ps.setNull(7, java.sql.Types.NULL);
             } else {
-                ps.setDouble(7, m.getRMT());
+                ps.setInt(7, c.getRef_compound_id_RMT());
             }
-
-            ps.executeUpdate();
-
-            //insertamos lo referente al paracetamol
-            ps.setInt(1, ce_eff_mob_id);
-            ps.setDouble(2, m.getExperimentalMZ());
-            ps.setInt(3, ConstantQueries.CAPILLARY_VOLTAGE);
-            ps.setInt(4, ConstantQueries.CAPILLARY_LENGTH);
-            ps.setInt(5, ConstantQueries.REFERENCE_COMPOUND_ID_MES);
-
             if (m.getMT() == null) {
-                ps.setNull(6, java.sql.Types.NULL);
+                ps.setNull(8, java.sql.Types.NULL);
             } else {
-                ps.setDouble(6, m.getMT());
+                ps.setDouble(8, m.getMT());
             }
             if (m.getRMT() == null) {
-                ps.setNull(7, java.sql.Types.NULL);
+                ps.setNull(9, java.sql.Types.NULL);
             } else {
-                ps.setDouble(7, m.getRMT());
+                ps.setDouble(9, m.getRMT());
             }
-
+            ps.setNull(10, java.sql.Types.NULL);
+            ps.setDouble(11, m.getEff_mobility());
+            if (IonizationModeType.MAPIONIZATIONMODETYPE.get(c.getIonizationMode()) == null) {
+                ps.setNull(12, java.sql.Types.NULL);
+            } else {
+                ps.setInt(12, IonizationModeType.MAPIONIZATIONMODETYPE.get(c.getIonizationMode()));
+            }
             ps.executeUpdate();
 
             System.out.println("Insertamos las ce_experimental_properties");
@@ -345,6 +391,7 @@ public class DBManager {
     }
 
     //---------------------------------------------------------------------------------------------------------
+
     /**
      * It executes the query and returns the first int returned by the query.
      *
@@ -401,6 +448,7 @@ public class DBManager {
     }
 
     //habrá que hacer también el resto de gets en función de lo que necesitemos
+
     /**
      * It executes the query and returns the first String returned by the query
      *
@@ -459,7 +507,7 @@ public class DBManager {
      * TO DO It executes the query and returns the list of Fragments returned by
      * the mz and its tolerance
      *
-     * @param mz mz of the fragments to find
+     * @param mz        mz of the fragments to find
      * @param tolerance tolerance in ppm
      * @return the list of fragments or null
      */
@@ -490,7 +538,6 @@ public class DBManager {
 
 
     /**
-     *
      * @param id which is the one from the last metabolite inserted
      * @throws Exception
      */

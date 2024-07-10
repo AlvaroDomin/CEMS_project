@@ -5,8 +5,6 @@
  */
 package constants;
 
-import java.io.File;
-
 /**
  *
  * @author maria
@@ -38,7 +36,7 @@ public class Constants {
     public static String INCHISCOMERCIAL = RESOURCES_PATH + "output/COMWithParents.xlsx";
     //COMERCIALLIST1.xlsx
     //InchisCOMERCIAL.xlsx
-    public static String RUTA_GUARDAR = RESOURCES_PATH + "output/";
+    public static String OUTPUT_DIRECTORY = RESOURCES_PATH + "output/";
     public static final String PUBCHEM_ENDPOINT_COMPOUND = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/";
     public static final String PUBCHEM_ENDPOINT_COMPOUND_NAME = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/";
 

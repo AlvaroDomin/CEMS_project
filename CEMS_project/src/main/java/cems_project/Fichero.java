@@ -408,7 +408,7 @@ public class Fichero {
         }
 
         // Guardar el libro de trabajo de Excel en un archivo
-        try (FileOutputStream outputStream = new FileOutputStream(Constants.RUTA_GUARDAR + "CEMBIOPCsAndInchis.xlsx")) {
+        try (FileOutputStream outputStream = new FileOutputStream(Constants.OUTPUT_DIRECTORY + "CEMBIOPCsAndInchis.xlsx")) {
             workbook.write(outputStream);
         } catch (IOException e) {
             System.out.println("No se ha podido escribir en el Excel");
@@ -622,7 +622,7 @@ public class Fichero {
         }
 
         // Guardar el libro de trabajo de Excel en un archivo
-        try (FileOutputStream outputStream = new FileOutputStream(Constants.RUTA_GUARDAR + "COMWithParents.xlsx")) {
+        try (FileOutputStream outputStream = new FileOutputStream(Constants.OUTPUT_DIRECTORY + "COMWithParents.xlsx")) {
             workbook.write(outputStream);
         } catch (IOException e) {
             System.out.println("No se ha podido escribir en el Excel");
@@ -730,7 +730,7 @@ public class Fichero {
         }
 
         // Guardar el libro de trabajo de Excel en un archivo
-        try (FileOutputStream outputStream = new FileOutputStream(Constants.RUTA_GUARDAR + "ComparadorInchisCembio.xlsx")) {
+        try (FileOutputStream outputStream = new FileOutputStream(Constants.OUTPUT_DIRECTORY + "ComparadorInchisCembio.xlsx")) {
             workbook.write(outputStream);
         } catch (IOException e) {
             System.out.println("No se ha podido escribir en el Excel");
@@ -832,7 +832,7 @@ public class Fichero {
         }
 
         // Guardar el libro de trabajo de Excel en un archivo
-        try (FileOutputStream outputStream = new FileOutputStream(Constants.RUTA_GUARDAR + "ComparadorInchisComercial.xlsx")) {
+        try (FileOutputStream outputStream = new FileOutputStream(Constants.OUTPUT_DIRECTORY + "ComparadorInchisComercial.xlsx")) {
             workbook.write(outputStream);
         } catch (IOException e) {
             System.out.println("No se ha podido escribir en el Excel");
@@ -861,7 +861,7 @@ public class Fichero {
         }
 
         // Guardar el libro de trabajo de Excel en un archivo
-        try (FileOutputStream outputStream = new FileOutputStream(Constants.RUTA_GUARDAR + "ComparadorInchisCembio_Comercial.xlsx")) {
+        try (FileOutputStream outputStream = new FileOutputStream(Constants.OUTPUT_DIRECTORY + "ComparadorInchisCembio_Comercial.xlsx")) {
             workbook.write(outputStream);
         } catch (IOException e) {
             System.out.println("No se ha podido escribir en el Excel");

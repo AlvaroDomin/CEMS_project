@@ -232,12 +232,12 @@ public class PubchemRest {
 
         JsonObject jsonrepsonse = JsonParser.parseString(jsonResponseString).getAsJsonObject();
         JsonObject properties = jsonrepsonse.get(("PropertyTable")).getAsJsonObject().get("Properties").getAsJsonArray().get(0).getAsJsonObject();
-        Integer cid = properties.get("CID").getAsInt();
+        Integer pc_id = properties.get("CID").getAsInt();
         String inchi_key = properties.get("InChIKey").getAsString();
         String inchi = properties.get("InChI").getAsString();
         String smiles = properties.get("CanonicalSMILES").getAsString();
 
-        Identifier identifier = new Identifier(inchi, inchi_key, smiles);
+        Identifier identifier = new Identifier(inchi, inchi_key, smiles, pc_id);
 
         return identifier;
     }

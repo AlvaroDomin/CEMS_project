@@ -154,6 +154,10 @@ public class Compound {
         return this.identifiersOwn.getInchi();
     }
 
+    public String getInchiKey(){
+        return this.identifiersOwn.getInchi_key();
+    }
+
     public String getRefHMDB(){
         return this.identifiersOwn.getHmdb_id();
     }

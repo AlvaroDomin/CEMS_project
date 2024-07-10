@@ -17,12 +17,12 @@ public class CEMSCompound extends Compound{
 
     private final Double experimentalMZ;
     private final Double MT;
-    private final Double RMT;
-    private final int compound_id_reference_MT;
+    private Double RMT;
+    private final Integer compound_id_reference_MT;
     private final List<Fragment> fragments;
     private final Double eff_mobility;
-    private final int identificationLevel;
-    private final int sampleTypeInt;
+    private final Integer identificationLevel;
+    private final Integer sampleTypeInt;
 
     /**
      * @param compound_id
@@ -35,18 +35,14 @@ public class CEMSCompound extends Compound{
      * @param experimentalMZ
      * @param identifierOwn
      * @param MT
-     * @param MTmets
-     * @param RMTmets
-     * @param MTmes
-     * @param RMTmes
      * @param fragments
      * @param eff_mobility
      */
     //constructor
     public CEMSCompound(Integer compound_id, String compound_name, String casId, String RefHMDB, Integer RefPubChem, String formula,
-                        Double monoisotopic_mass, Double experimentalMZ, Identifier identifierOwn, int sampleTypeInt,
-                        Double MT, Double RMT, int compound_id_reference_MT,
-                        List<Fragment> fragments, Double eff_mobility, int identificationLevel) {
+                        Double monoisotopic_mass, Double experimentalMZ, Identifier identifierOwn, Integer sampleTypeInt,
+                        Double MT, Double RMT, Integer compound_id_reference_MT,
+                        List<Fragment> fragments, Double eff_mobility, Integer identificationLevel) {
         super(compound_id, compound_name, casId, RegexInChI.getFormulaFromInChI(identifierOwn.getInchi()), monoisotopic_mass, 2,
                 0, null, identifierOwn);
         this.experimentalMZ = experimentalMZ;
@@ -61,17 +57,6 @@ public class CEMSCompound extends Compound{
 
     @Override
     public String toString() {
-        return "CEMSCompound{" +
-                "MTcompnd=" + MT +
-                ", RMTmets=" + RMT +
-                ", compound_id_reference_MT=" + compound_id_reference_MT +
-                ", fragments=" + fragments +
-                ", eff_mobility=" + eff_mobility +
-                ", identificationLevel=" + identificationLevel +
-                "} " + super.toString();
-    }
-
-    public String toStsring() {
         return "CEMSCompound{" +
                 "MTcompnd=" + MT +
                 ", RMTmets=" + RMT +
@@ -101,16 +86,17 @@ public class CEMSCompound extends Compound{
     public Double getRMT() {
         return RMT;
     }
+    public void setRMT(Double RMT){this.RMT = RMT;}
 
-    public int getCompound_id_reference_MT() {
+    public Integer getCompound_id_reference_MT() {
         return compound_id_reference_MT;
     }
 
-    public int getIdentificationLevel() {
+    public Integer getIdentificationLevel() {
         return identificationLevel;
     }
 
-    public int getSampleTypeInt() {
+    public Integer getSampleTypeInt() {
         return sampleTypeInt;
     }
 }
